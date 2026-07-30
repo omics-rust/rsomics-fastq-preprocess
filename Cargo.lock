@@ -154,6 +154,7 @@ dependencies = [
  "anstyle",
  "clap_lex",
  "strsim",
+ "terminal_size",
 ]
 
 [[package]]
@@ -486,11 +487,9 @@ checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
 
 [[package]]
 name = "rsomics-common"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
  "clap",
- "flate2",
- "rayon",
  "serde",
  "serde_json",
  "thiserror",
@@ -506,6 +505,7 @@ dependencies = [
  "libdeflater",
  "rayon",
  "rsomics-common",
+ "rsomics-help",
  "rsomics-seqio",
  "same-file",
  "serde",
@@ -514,8 +514,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "rsomics-help"
+version = "0.4.0"
+dependencies = [
+ "clap",
+]
+
+[[package]]
 name = "rsomics-seqio"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "crossbeam-channel",
  "flate2",
@@ -636,6 +643,16 @@ dependencies = [
  "fastrand",
  "getrandom",
  "once_cell",
+ "rustix",
+ "windows-sys",
+]
+
+[[package]]
+name = "terminal_size"
+version = "0.4.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "230a1b821ccbd75b185820a1f1ff7b14d21da1e442e22c0863ea5f08771a8874"
+dependencies = [
  "rustix",
  "windows-sys",
 ]

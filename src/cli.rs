@@ -1,7 +1,8 @@
 use std::num::NonZeroUsize;
 
 use clap::{Args, Parser, Subcommand};
-use rsomics_common::{CommonFlags, Result, RsomicsError, ToolMeta};
+use rayon::{ThreadPool, ThreadPoolBuilder};
+use rsomics_common::{OutputArgs, Result, RsomicsError, ToolMeta};
 
 use rsomics_fastq_preprocess::{
     FilterConfig, FixedTrim, IoSpec, Operation, PhredEncoding, PipelineConfig, PolyTailConfig,
@@ -26,7 +27,30 @@ pub struct Cli {
     command: Command,
 
     #[command(flatten)]
-    pub common: CommonFlags,
+    pub output: OutputArgs,
+
+    #[command(flatten)]
+    pub threads: ThreadArgs,
+}
+
+#[derive(Debug, Clone, Args)]
+#[command(next_help_heading = "Global options")]
+pub struct ThreadArgs {
+    /// Number of worker threads.
+    #[arg(short = 't', long, global = true)]
+    threads: Option<NonZeroUsize>,
+}
+
+impl ThreadArgs {
+    pub fn build(&self) -> Result<ThreadPool> {
+        let mut builder = ThreadPoolBuilder::new();
+        if let Some(threads) = self.threads {
+            builder = builder.num_threads(threads.get());
+        }
+        builder.build().map_err(|error| {
+            RsomicsError::ConfigError(format!("creating worker thread pool failed: {error}"))
+        })
+    }
 }
 
 #[derive(Debug, Subcommand)]
@@ -68,6 +92,7 @@ struct FilterOnlyArgs {
 }
 
 #[derive(Debug, Clone, Args)]
+#[command(next_help_heading = "Input/output")]
 struct IoArgs {
     /// R1 FASTQ input; `-` reads stdin in single-end mode.
     #[arg(short = 'i', long = "in1", default_value = "-")]
@@ -103,6 +128,7 @@ impl IoArgs {
 }
 
 #[derive(Debug, Clone, Args)]
+#[command(next_help_heading = "Trimming")]
 struct TrimOptions {
     /// Trim this many bases from the R1 5-prime end.
     #[arg(short = 'f', long, default_value_t = 0)]
@@ -182,6 +208,7 @@ impl TrimOptions {
 }
 
 #[derive(Debug, Clone, Args)]
+#[command(next_help_heading = "Output filtering")]
 struct TrimOutputOptions {
     /// Quality encoding; Phred+64 input is always emitted as Phred+33.
     #[arg(long, default_value_t = 33, value_parser = clap::value_parser!(u8).range(33..=64))]
@@ -216,6 +243,7 @@ impl TrimOutputOptions {
 }
 
 #[derive(Debug, Clone, Args)]
+#[command(next_help_heading = "Length filtering")]
 struct LengthOptions {
     /// Minimum accepted read length.
     #[arg(short = 'l', long, default_value_t = 15)]
@@ -239,6 +267,7 @@ impl LengthOptions {
 }
 
 #[derive(Debug, Clone, Args)]
+#[command(next_help_heading = "Filtering")]
 struct FilterOptions {
     /// Quality encoding; accepted values are 33 and 64.
     #[arg(long, default_value_t = 33, value_parser = clap::value_parser!(u8).range(33..=64))]
@@ -308,7 +337,7 @@ fn parse_phred(offset: u8) -> Result<PhredEncoding> {
 
 impl Cli {
     pub fn execute(self) -> Result<PreprocessReport> {
-        let json = self.common.json;
+        let json = self.output.json;
         let (io, config) = match self.command {
             Command::Run(args) => (
                 args.io.build(),
@@ -353,6 +382,14 @@ mod tests {
     #[test]
     fn command_tree_is_valid() {
         Cli::command().debug_assert();
+    }
+
+    #[test]
+    fn thread_limit_uses_a_local_pool() {
+        let cli =
+            Cli::try_parse_from(["rsomics-fastq-preprocess", "--threads", "1", "filter"]).unwrap();
+        let pool = cli.threads.build().unwrap();
+        assert_eq!(pool.install(rayon::current_num_threads), 1);
     }
 
     #[test]

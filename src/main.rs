@@ -1,10 +1,12 @@
 mod cli;
 
-use clap::Parser;
 use cli::{Cli, META};
 
 fn main() -> std::process::ExitCode {
-    let cli = Cli::parse();
-    let common = cli.common.clone();
-    rsomics_common::run(&common, META, || cli.execute())
+    let cli = rsomics_help::parse::<Cli>();
+    let output = cli.output.clone();
+    rsomics_common::run(&output, META, || {
+        let pool = cli.threads.build()?;
+        pool.install(|| cli.execute())
+    })
 }

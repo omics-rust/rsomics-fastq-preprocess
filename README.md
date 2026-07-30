@@ -27,8 +27,8 @@ rsomics-fastq-preprocess run \
   -o clean.R1.fastq.gz -O clean.R2.fastq.gz \
   --trim-poly-g --qualified-quality-phred 20 --length-required 50
 
-# Common JSON envelope on stdout, FASTQ data in a file
-rsomics-fastq-preprocess filter --json \
+# Unified global options can appear before or after the subcommand
+rsomics-fastq-preprocess --threads 4 filter --json \
   -i reads.fastq -o clean.fastq
 ```
 
@@ -121,9 +121,9 @@ byte-for-byte differential for:
 
 Revision `de07879d1d5ddaab9c5534e50d161ca660ba44e9` replaces the serial
 gzip sink with ordered, independently compressed gzip members. Compression
-uses the existing Rayon pool, so it does not add background worker threads
-beyond the requested processing pool. Exact-head CI is green on native Linux
-and macOS for both `x86_64` and `aarch64`.
+uses the command's local Rayon pool, so it does not add background worker
+threads beyond the requested processing pool. CI tests exact foundation
+revisions on native Linux and macOS for both `x86_64` and `aarch64`.
 
 A real compressed-output gate used SRR341550 on Ubuntu 22.04 / Linux 6.8,
 with two Intel Xeon Gold 6238R CPUs. Input SHA-256 values were

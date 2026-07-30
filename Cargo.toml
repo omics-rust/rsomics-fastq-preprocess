@@ -15,8 +15,9 @@ readme = "README.md"
 clap = { version = "4", features = ["derive"] }
 libdeflater = "1"
 rayon = "1"
-rsomics-common = "0.6.4"
-rsomics-seqio = "0.2.0"
+rsomics-common = "0.7"
+rsomics-help = "0.4"
+rsomics-seqio = "0.3"
 same-file = "1"
 serde = { version = "1", features = ["derive"] }
 tempfile = "3"

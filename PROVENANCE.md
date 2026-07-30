@@ -84,16 +84,15 @@ checkpoint.
   transactions remain product policy and are implemented here.
 - A future shared quality-encoding type requires the concrete
   `rsomics-fastq-qc` consumer before promotion to `rsomics-seqio`.
-- `rsomics-common` provides execution flags and a fallible JSON envelope path;
+- `rsomics-common` provides the JSON output contract and fallible envelope path;
   serialization, write, newline, and flush failures propagate non-zero.
 - FASTQ stdout errors are propagated by this product's `rsomics-seqio` writer.
 - Two PE final paths are coordinated with prepare-before-commit, no-clobber,
   and best-effort rollback. They are not an atomic multi-file transaction.
 - Per-mate PE failure counters are the rsomics report contract and are not
   presented as fastp JSON compatibility.
-- The current `rsomics-help` model duplicates command metadata instead of
-  deriving the nested Clap tree; this product retains one Clap source of
-  truth.
+- `rsomics-help` renders the product's real nested Clap tree without a second
+  help model.
 
 No performance result is inherited as a pass.
 

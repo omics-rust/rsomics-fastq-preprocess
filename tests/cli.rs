@@ -37,6 +37,28 @@ fn help_is_available_for_the_product_and_each_operation() {
             String::from_utf8_lossy(&output.stderr)
         );
     }
+
+    let top = String::from_utf8(run(&["--help"]).stdout).unwrap();
+    assert!(top.contains("Global options:"));
+    assert!(top.contains("--threads"));
+    assert!(top.contains("--json"));
+    for absent in ["--seed", "--quiet", "--verbose"] {
+        assert!(!top.contains(absent));
+    }
+
+    let run_help = String::from_utf8(run(&["run", "--help"]).stdout).unwrap();
+    for heading in [
+        "Input/output:",
+        "Trimming:",
+        "Filtering:",
+        "Length filtering:",
+        "Global options:",
+    ] {
+        assert!(run_help.contains(heading), "missing {heading:?}");
+    }
+
+    let trim_help = String::from_utf8(run(&["trim", "--help"]).stdout).unwrap();
+    assert!(trim_help.contains("Output filtering:"));
 }
 
 #[test]

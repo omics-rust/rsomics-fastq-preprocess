@@ -20,48 +20,55 @@ jobs:
     runs-on: ${{ matrix.runner }}
 
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
           repository: omics-rust/rsomics-common
-          ref: 1c51f7d0b356683697942d9c6a0f60585e0dc8a9
-          path: deps/rsomics-common
-      - uses: actions/checkout@v5
+          ref: 9f11f37c0fa48a24cae12549769f3395d9d0f19f
+          path: target/ci/rsomics-common
+      - uses: actions/checkout@v6
+        with:
+          repository: omics-rust/rsomics-help
+          ref: c615aa8b85224055faad57c86abd068aded89d06
+          path: target/ci/rsomics-help
+      - uses: actions/checkout@v6
         with:
           repository: omics-rust/rsomics-seqio
-          ref: ce9c5514c23573a64406e1ff9ad02edfa4d02d31
-          path: deps/rsomics-seqio
-      - uses: actions/checkout@v5
+          ref: b23cf8ad29fd06c84aaaa0c480ba1da8cff01e7d
+          path: target/ci/rsomics-seqio
+      - uses: actions/checkout@v6
         with:
           repository: OpenGene/fastp
           ref: 23d6211d4f05d61f561899f1b7702435a4b5d408
-          path: deps/fastp
-      - uses: actions/checkout@v5
+          path: target/ci/fastp
+      - uses: actions/checkout@v6
         if: startsWith(matrix.runner, 'ubuntu')
         with:
           repository: google/highway
           ref: ac0d5d297b13ab1b89f48484fc7911082d76a93f
-          path: deps/highway
+          path: target/ci/highway
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: "1.91.0"
           components: rustfmt, clippy
 
-      - name: Configure unpublished foundation revision
+      - name: Configure unpublished foundation revisions
         run: |
-          mkdir -p .cargo
-          cat > .cargo/config.toml <<'EOF'
+          mkdir -p "$RUNNER_TEMP/cargo-home"
+          cat > "$RUNNER_TEMP/cargo-home/config.toml" <<EOF
           [patch.crates-io]
-          rsomics-common = { path = "deps/rsomics-common" }
-          rsomics-seqio = { path = "deps/rsomics-seqio" }
+          rsomics-common = { path = "$GITHUB_WORKSPACE/target/ci/rsomics-common" }
+          rsomics-help = { path = "$GITHUB_WORKSPACE/target/ci/rsomics-help" }
+          rsomics-seqio = { path = "$GITHUB_WORKSPACE/target/ci/rsomics-seqio" }
           EOF
+          echo "CARGO_HOME=$RUNNER_TEMP/cargo-home" >> "$GITHUB_ENV"
 
       - name: Build fastp dependencies on Ubuntu
         if: startsWith(matrix.runner, 'ubuntu')
         run: |
           sudo apt-get update
           sudo apt-get install --yes cmake g++ libdeflate-dev libisal-dev make ninja-build pkg-config
-          cmake -S deps/highway -B "$RUNNER_TEMP/highway-build" -G Ninja \
+          cmake -S target/ci/highway -B "$RUNNER_TEMP/highway-build" -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_SHARED_LIBS=OFF \
             -DHWY_ENABLE_TESTS=OFF \
@@ -75,14 +82,19 @@ jobs:
 
       - name: Build exact fastp oracle
         run: |
-          test "$(git -C deps/fastp rev-parse HEAD)" = 23d6211d4f05d61f561899f1b7702435a4b5d408
-          make -C deps/fastp -j2
-          test "$(deps/fastp/fastp --version 2>&1)" = "fastp 1.3.6"
-          echo "$PWD/deps/fastp" >> "$GITHUB_PATH"
+          test "$(git -C target/ci/fastp rev-parse HEAD)" = 23d6211d4f05d61f561899f1b7702435a4b5d408
+          make -C target/ci/fastp -j2
+          test "$(target/ci/fastp/fastp --version 2>&1)" = "fastp 1.3.6"
+          echo "$PWD/target/ci/fastp" >> "$GITHUB_PATH"
 
-      - run: cargo fmt --all -- --check
-      - run: cargo clippy --locked --all-targets --all-features -- -D warnings
+      - if: matrix.runner == 'ubuntu-24.04'
+        run: cargo fmt --all -- --check
+      - if: matrix.runner == 'ubuntu-24.04'
+        run: cargo clippy --locked --all-targets --all-features -- -D warnings
+      - if: matrix.runner == 'ubuntu-24.04'
+        run: cargo package --locked
       - run: cargo test --locked --all-features
         env:
           RSOMICS_REQUIRE_FASTP: "1"
-      - run: cargo bench --locked --bench pipeline -- --test
+      - if: matrix.runner == 'ubuntu-24.04'
+        run: cargo bench --locked --bench pipeline -- --test
