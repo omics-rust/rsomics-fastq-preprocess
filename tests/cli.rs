@@ -161,6 +161,58 @@ fn paired_filter_is_synchronized_and_json_is_populated() {
 }
 
 #[test]
+fn thread_counts_preserve_single_and_paired_results() {
+    for paired in [false, true] {
+        let directory = tempfile::tempdir().unwrap();
+        let input_r1 = if paired {
+            fixture("paired.r1.fastq")
+        } else {
+            fixture("filter.fastq")
+        };
+        let input_r2 = paired.then(|| fixture("paired.r2.fastq"));
+        let mut results = Vec::new();
+        for threads in ["1", "4"] {
+            let output_r1 = directory.path().join(format!("{threads}.r1.fastq"));
+            let output_r2 = directory.path().join(format!("{threads}.r2.fastq"));
+            let mut args = vec![
+                "--threads",
+                threads,
+                "--json",
+                "filter",
+                "-i",
+                input_r1.to_str().unwrap(),
+                "-o",
+                output_r1.to_str().unwrap(),
+            ];
+            if let Some(input_r2) = input_r2.as_ref() {
+                args.extend([
+                    "-I",
+                    input_r2.to_str().unwrap(),
+                    "-O",
+                    output_r2.to_str().unwrap(),
+                ]);
+            }
+            let output = run(&args);
+            assert!(
+                output.status.success(),
+                "paired={paired}, threads={threads}, stderr={}",
+                String::from_utf8_lossy(&output.stderr)
+            );
+            let mut report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+            let result = report["result"].as_object_mut().unwrap();
+            result.remove("output_r1");
+            result.remove("output_r2");
+            results.push((
+                std::fs::read(output_r1).unwrap(),
+                paired.then(|| std::fs::read(output_r2).unwrap()),
+                report,
+            ));
+        }
+        assert_eq!(results[0], results[1], "paired={paired}");
+    }
+}
+
+#[test]
 fn single_end_stdin_and_stdout_form_an_identity_pipeline() {
     let bytes = std::fs::read(fixture("filter.fastq")).unwrap();
     let mut child = Command::new(binary())

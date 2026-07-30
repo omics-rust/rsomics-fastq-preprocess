@@ -84,19 +84,43 @@ impl Default for FilterConfig {
 impl FilterConfig {
     /// Checks one FASTQ record using fastp v1.3.6 filter precedence.
     pub fn check(self, seq: &[u8], qual: &[u8]) -> Result<FilterOutcome> {
-        if seq.is_empty()
+        if let Some(outcome) = self.empty_read_outcome(seq) {
+            return Ok(outcome);
+        }
+        self.validate_quality_offset(qual)?;
+        self.check_after_offset_validation(seq, qual)
+    }
+
+    pub(crate) fn check_seqio_record(self, seq: &[u8], qual: &[u8]) -> Result<FilterOutcome> {
+        if let Some(outcome) = self.empty_read_outcome(seq) {
+            return Ok(outcome);
+        }
+        if self.phred == PhredEncoding::Phred64 {
+            self.validate_quality_offset(qual)?;
+        }
+        self.check_after_offset_validation(seq, qual)
+    }
+
+    fn empty_read_outcome(self, seq: &[u8]) -> Option<FilterOutcome> {
+        (seq.is_empty()
             && (self.quality_enabled
                 || (self.length_enabled && self.length_required > 0)
-                || self.complexity_threshold.is_some())
-        {
-            return Ok(FilterOutcome::TooShort);
-        }
+                || self.complexity_threshold.is_some()))
+        .then_some(FilterOutcome::TooShort)
+    }
+
+    fn validate_quality_offset(self, qual: &[u8]) -> Result<()> {
         let offset = self.phred.offset();
         if let Some(invalid) = qual.iter().copied().find(|quality| *quality < offset) {
             return Err(RsomicsError::InvalidInput(format!(
                 "quality byte {invalid} is below the explicit Phred+{offset} offset"
             )));
         }
+        Ok(())
+    }
+
+    fn check_after_offset_validation(self, seq: &[u8], qual: &[u8]) -> Result<FilterOutcome> {
+        let offset = self.phred.offset();
 
         if self.quality_enabled {
             let qualified_threshold = u16::from(self.qualified_quality_phred) + u16::from(offset);
@@ -225,6 +249,20 @@ mod tests {
             ..FilterConfig::default()
         };
         assert!(config.check(b"ACGT", b"!!!!").is_err());
+    }
+
+    #[test]
+    fn public_phred33_check_rejects_bytes_below_ascii_quality_range() {
+        let config = FilterConfig {
+            quality_enabled: false,
+            length_enabled: false,
+            ..FilterConfig::default()
+        };
+        assert!(config.check(b"A", b" ").is_err());
+        assert_eq!(
+            FilterConfig::default().check(b"", b" ").unwrap(),
+            FilterOutcome::TooShort
+        );
     }
 
     #[test]

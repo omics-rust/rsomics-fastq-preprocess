@@ -344,10 +344,17 @@ fn process_single_reader(
         if chunk.is_empty() {
             break;
         }
-        let processed: Result<Vec<_>> = chunk
-            .into_par_iter()
-            .map(|record| process_single(record, config))
-            .collect();
+        let processed: Result<Vec<_>> = if rayon::current_num_threads() == 1 {
+            chunk
+                .into_iter()
+                .map(|record| process_single(record, config))
+                .collect()
+        } else {
+            chunk
+                .into_par_iter()
+                .map(|record| process_single(record, config))
+                .collect()
+        };
         for item in processed? {
             report.merge(&item.delta)?;
             if let Some(record) = item.output {
@@ -403,10 +410,17 @@ fn execute_paired_end(io: &IoSpec, config: &PipelineConfig) -> Result<Preprocess
         if chunk.is_empty() {
             break;
         }
-        let processed: Result<Vec<_>> = chunk
-            .into_par_iter()
-            .map(|pair| process_pair(pair, config))
-            .collect();
+        let processed: Result<Vec<_>> = if rayon::current_num_threads() == 1 {
+            chunk
+                .into_iter()
+                .map(|pair| process_pair(pair, config))
+                .collect()
+        } else {
+            chunk
+                .into_par_iter()
+                .map(|pair| process_pair(pair, config))
+                .collect()
+        };
         for item in processed? {
             report.merge(&item.delta)?;
             if let Some((left, right)) = item.output {
@@ -518,7 +532,7 @@ fn check_record(record: &OwnedRecord, filter: Option<FilterConfig>) -> Result<Fi
     let Some(filter) = filter else {
         return Ok(FilterOutcome::Pass);
     };
-    filter.check(
+    filter.check_seqio_record(
         &record.seq,
         record
             .qual
