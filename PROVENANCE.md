@@ -9,6 +9,7 @@
 | whole-read filter | `rsomics-fastq-filter` | `bdc2824778ed1b8fc185b173d841f63d8b9e6759` | retain boundary fixtures; correct precedence and transactional I/O |
 | quality trimming | `rsomics-fastq-quality` | `711e32cac0f45072d038171f42d6d4a831112cff` | evidence only; excluded until Trimmomatic versus fastp semantics have separate oracles |
 | complexity | `rsomics-fastq-complexity` | `22948ed73a0f1b1b26cba7494b25c79fb8067811` | refactor adjacent-change metric; correct length-zero/one behavior |
+| parallel gzip output | `rsomics-fqgz` | implementation introduced at `0ebfe46`; retained source head `c5e7de1` | refactor then merge as a private product module; retain strict seqio serialization and transactional output |
 | old combined CLI/report | `rsomics-fastp` | `2d1d68d25d10c087aae4548b922b9b1b4e9b80ad` | fixtures and option inventory only |
 
 All listed rsomics code is team-owned.
@@ -95,3 +96,46 @@ checkpoint.
   truth.
 
 No performance result is inherited as a pass.
+
+## Measured compressed-output gate
+
+The parallel gzip implementation was re-established rather than accepted from
+the historical README. Revision
+`de07879d1d5ddaab9c5534e50d161ca660ba44e9` uses `libdeflater` 1.25.2
+and the existing product Rayon pool to compress ordered 256 KiB gzip members.
+It preserves `rsomics-seqio::Writer` validation and serialization, empty gzip
+validity, flush-then-write ordering, downstream error propagation, and the
+existing no-clobber transaction.
+
+The Linux `x86_64` gate used Rust 1.91.0, fastp source commit
+`23d6211d4f05d61f561899f1b7702435a4b5d408`, and SRR341550 inputs:
+
+- R1 SHA-256:
+  `d7a15c1762d64a5434ced0cc665d7f5d167ca81a71e239f8237b9cd490dd7683`;
+- R2 SHA-256:
+  `18a8e61af21d276dfaf12035307d673e3f52c9f3ac57658ee2f593d1aabeb1a4`;
+- filtered R1 byte-stream SHA-256:
+  `f13cb655feedf78cf1f3c512675ad73323409f5862b0b3a6e5e3d48e21e6e365`;
+- filtered R2 byte-stream SHA-256:
+  `452c78a98878e56bf1e5e7728b749e0277e0e14607fa465f7da3e83e551c078c`.
+
+At four threads, ten measured paired runs were
+`10.863 ± 0.298 s` versus fastp's `13.891 ± 0.447 s`; peak RSS was
+31.5 MiB versus 101.9 MiB. At one thread, five measured paired runs were
+`22.308 ± 0.610 s` versus `39.091 ± 0.894 s`; peak RSS was 31.5 MiB
+versus 88.7 MiB.
+
+Single-end output remained byte-identical but was slower: five-run means were
+`9.910 ± 0.186 s` versus `6.849 ± 0.090 s` at one thread and
+`5.360 ± 0.075 s` versus `4.937 ± 0.721 s` at four threads. The measured
+four-thread RSS was 19.6 MiB versus fastp's 52.9 MiB. This is a memory
+advantage, not a single-end throughput claim.
+
+The final gzip members passed `gzip -t` and were consumed by SeqKit 2.13.0 and
+fastp 1.3.6. Their paired file sizes were approximately 0.07% above fastp and
+1.3% above the previous serial zlib-rs output. Exact-head CI run
+`30551968781` passed native Linux and macOS on both `x86_64` and `aarch64`.
+
+The backend remains private to this product. It is not a new foundation API;
+promotion requires a second concrete product consumer with the same contract.
+`libdeflater` and its bundled libdeflate C library are MIT licensed.

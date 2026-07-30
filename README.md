@@ -119,9 +119,37 @@ byte-for-byte differential for:
 - Phred+64 boundary conversion, uppercase-only N filtering, maximum length,
   PE fixed-trim inheritance/explicit zero, and mixed PE failures.
 
-The Criterion benchmark and `scripts/perf.sh` are scaffolds only. No
-performance pass is claimed until representative fixture checksum, machine,
-thread count, compression, timing distribution, and peak RSS are recorded.
+Revision `de07879d1d5ddaab9c5534e50d161ca660ba44e9` replaces the serial
+gzip sink with ordered, independently compressed gzip members. Compression
+uses the existing Rayon pool, so it does not add background worker threads
+beyond the requested processing pool. Exact-head CI is green on native Linux
+and macOS for both `x86_64` and `aarch64`.
+
+A real compressed-output gate used SRR341550 on Ubuntu 22.04 / Linux 6.8,
+with two Intel Xeon Gold 6238R CPUs. Input SHA-256 values were
+`d7a15c1762d64a5434ced0cc665d7f5d167ca81a71e239f8237b9cd490dd7683`
+for R1 and
+`18a8e61af21d276dfaf12035307d673e3f52c9f3ac57658ee2f593d1aabeb1a4`
+for R2. Times are means and sample standard deviations; RSS is from a
+separate `/usr/bin/time -v` run.
+
+| Mode | Threads | rsomics | fastp 1.3.6 | Peak RSS, rsomics / fastp |
+|---|---:|---:|---:|---:|
+| paired | 1 | 22.308 ± 0.610 s | 39.091 ± 0.894 s | 31.5 / 88.7 MiB |
+| paired | 4 | 10.863 ± 0.298 s | 13.891 ± 0.447 s | 31.5 / 101.9 MiB |
+| single | 1 | 9.910 ± 0.186 s | 6.849 ± 0.090 s | not recorded |
+| single | 4 | 5.360 ± 0.075 s | 4.937 ± 0.721 s | 19.6 / 52.9 MiB |
+
+The paired hot path is faster and uses substantially less memory. The
+single-end hot path is not a throughput win on this host; its demonstrated
+advantage is lower peak memory. Decompressed single-end and paired outputs are
+byte-identical to the aligned fastp slice. The paired gzip files are about
+0.07% larger than fastp's and about 1.3% larger than the previous serial
+zlib-rs output. `gzip -t`, SeqKit 2.13.0, and fastp 1.3.6 all read the
+concatenated-member output.
+
+The Criterion benchmark and `scripts/perf.sh` remain smoke scaffolds rather
+than substitutes for this representative external measurement.
 
 ## Current exclusions
 
