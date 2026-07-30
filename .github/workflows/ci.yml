@@ -52,8 +52,8 @@ jobs:
           mkdir -p .cargo
           cat > .cargo/config.toml <<'EOF'
           [patch.crates-io]
-          rsomics-common = { path = "../deps/rsomics-common" }
-          rsomics-seqio = { path = "../deps/rsomics-seqio" }
+          rsomics-common = { path = "deps/rsomics-common" }
+          rsomics-seqio = { path = "deps/rsomics-seqio" }
           EOF
 
       - name: Build fastp dependencies on Ubuntu
