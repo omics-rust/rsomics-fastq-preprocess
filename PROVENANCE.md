@@ -16,7 +16,7 @@ All listed rsomics code is team-owned.
 Foundation revisions exercised by this slice:
 
 - `rsomics-seqio`
-  `b317e8bcba31f5df697f60b3eb2a5c224b8b8058`;
+  `ce9c5514c23573a64406e1ff9ad02edfa4d02d31`;
 - `rsomics-common`
   `1c51f7d0b356683697942d9c6a0f60585e0dc8a9`.
 
