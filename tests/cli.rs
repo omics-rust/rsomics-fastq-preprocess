@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -329,6 +329,32 @@ fn gzip_output_round_trips_through_seqio_content_detection() {
         count += 1;
     }
     assert_eq!(count, 3);
+}
+
+#[test]
+fn fully_filtered_gzip_output_is_valid_and_empty() {
+    let directory = tempfile::tempdir().unwrap();
+    let input_path = directory.path().join("short.fastq");
+    let output_path = directory.path().join("filtered.fastq.gz");
+    std::fs::write(&input_path, b"@short\nACGT\n+\nIIII\n").unwrap();
+
+    let output = run(&[
+        "filter",
+        "-i",
+        input_path.to_str().unwrap(),
+        "-o",
+        output_path.to_str().unwrap(),
+        "--length-required",
+        "5",
+    ]);
+    assert!(output.status.success());
+    let compressed = std::fs::read(&output_path).unwrap();
+    assert_eq!(&compressed[..2], &[0x1f, 0x8b]);
+    let mut decoded = Vec::new();
+    flate2::read::MultiGzDecoder::new(compressed.as_slice())
+        .read_to_end(&mut decoded)
+        .unwrap();
+    assert!(decoded.is_empty());
 }
 
 #[test]

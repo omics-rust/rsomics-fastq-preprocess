@@ -6,6 +6,8 @@ use rsomics_common::{Context, Result, RsomicsError};
 use rsomics_seqio::{Compression, Format, OwnedRecord, Writer};
 use tempfile::NamedTempFile;
 
+use crate::parallel_gzip::ParallelGzipWriter;
+
 pub(crate) enum OutputSink {
     Stdout(Option<Writer<Stdout>>),
     File(TransactionOutput),
@@ -50,7 +52,42 @@ impl OutputSink {
 pub(crate) struct TransactionOutput {
     final_path: PathBuf,
     temporary: Option<NamedTempFile>,
-    writer: Option<Writer<File>>,
+    writer: Option<TransactionWriter>,
+}
+
+enum TransactionWriter {
+    Plain(Writer<File>),
+    Gzip(Writer<ParallelGzipWriter<File>>),
+}
+
+impl TransactionWriter {
+    fn new(file: File, compression: Compression) -> Result<Self> {
+        match compression {
+            Compression::Plain => Ok(Self::Plain(Writer::new(file, Format::Fastq))),
+            Compression::Gzip { level } => {
+                let gzip = ParallelGzipWriter::new(file, level).map_err(RsomicsError::Io)?;
+                Ok(Self::Gzip(Writer::new(gzip, Format::Fastq)))
+            }
+        }
+    }
+
+    fn write(&mut self, record: &OwnedRecord) -> Result<()> {
+        match self {
+            Self::Plain(writer) => writer.write_owned(record),
+            Self::Gzip(writer) => writer.write_owned(record),
+        }
+    }
+
+    fn finish(self) -> Result<()> {
+        match self {
+            Self::Plain(writer) => writer.finish(),
+            Self::Gzip(writer) => writer
+                .finish_into_inner()?
+                .finish()
+                .map(drop)
+                .map_err(RsomicsError::Io),
+        }
+    }
 }
 
 impl TransactionOutput {
@@ -64,10 +101,7 @@ impl TransactionOutput {
             .reopen()
             .rs_with_context(|| format!("opening temporary output for {}", final_path.display()))?;
         let compression = compression_for(final_path, gzip_level);
-        let writer = match compression {
-            Compression::Plain => Writer::new(file, Format::Fastq),
-            Compression::Gzip { level } => Writer::gzip(file, Format::Fastq, level)?,
-        };
+        let writer = TransactionWriter::new(file, compression)?;
         Ok(Self {
             final_path: final_path.to_owned(),
             temporary: Some(temporary),
@@ -79,7 +113,7 @@ impl TransactionOutput {
         self.writer
             .as_mut()
             .expect("transaction writer is present until prepare")
-            .write_owned(record)
+            .write(record)
     }
 
     pub(crate) fn prepare(&mut self) -> Result<()> {

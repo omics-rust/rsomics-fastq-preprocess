@@ -5,6 +5,7 @@
 
 mod input;
 mod output;
+mod parallel_gzip;
 /// Streaming SE/PE execution and typed reports.
 pub mod pipeline;
 /// Pure trimming and filtering transforms.
