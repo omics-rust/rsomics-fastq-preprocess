@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+          - macos-15-intel
+          - macos-15
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
+        with:
+          repository: omics-rust/rsomics-common
+          ref: 1c51f7d0b356683697942d9c6a0f60585e0dc8a9
+          path: deps/rsomics-common
+      - uses: actions/checkout@v5
+        with:
+          repository: omics-rust/rsomics-seqio
+          ref: c42f4212b78516cf3e756376d3581d08aff59879
+          path: deps/rsomics-seqio
+      - uses: actions/checkout@v5
+        with:
+          repository: OpenGene/fastp
+          ref: 23d6211d4f05d61f561899f1b7702435a4b5d408
+          path: deps/fastp
+      - uses: actions/checkout@v5
+        if: startsWith(matrix.runner, 'ubuntu')
+        with:
+          repository: google/highway
+          ref: ac0d5d297b13ab1b89f48484fc7911082d76a93f
+          path: deps/highway
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.91.0"
+          components: rustfmt, clippy
+
+      - name: Configure unpublished foundation revision
+        run: |
+          mkdir -p .cargo
+          cat > .cargo/config.toml <<'EOF'
+          [patch.crates-io]
+          rsomics-common = { path = "../deps/rsomics-common" }
+          rsomics-seqio = { path = "../deps/rsomics-seqio" }
+          EOF
+
+      - name: Build fastp dependencies on Ubuntu
+        if: startsWith(matrix.runner, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes cmake g++ libdeflate-dev libisal-dev make ninja-build pkg-config
+          cmake -S deps/highway -B "$RUNNER_TEMP/highway-build" -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DHWY_ENABLE_TESTS=OFF \
+            -DHWY_ENABLE_EXAMPLES=OFF
+          cmake --build "$RUNNER_TEMP/highway-build"
+          sudo cmake --install "$RUNNER_TEMP/highway-build"
+
+      - name: Install fastp build dependencies on macOS
+        if: startsWith(matrix.runner, 'macos')
+        run: brew install highway isa-l libdeflate
+
+      - name: Build exact fastp oracle
+        run: |
+          test "$(git -C deps/fastp rev-parse HEAD)" = 23d6211d4f05d61f561899f1b7702435a4b5d408
+          make -C deps/fastp -j2
+          test "$(deps/fastp/fastp --version 2>&1)" = "fastp 1.3.6"
+          echo "$PWD/deps/fastp" >> "$GITHUB_PATH"
+
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --locked --all-targets --all-features -- -D warnings
+      - run: cargo test --locked --all-features
+        env:
+          RSOMICS_REQUIRE_FASTP: "1"
+      - run: cargo bench --locked --bench pipeline -- --test

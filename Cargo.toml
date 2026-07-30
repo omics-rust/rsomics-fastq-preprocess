@@ -1,0 +1,29 @@
+[package]
+name = "rsomics-fastq-preprocess"
+version = "0.1.0"
+description = "Single-pass FASTQ trimming and filtering for single-end and paired-end reads"
+edition = "2024"
+rust-version = "1.91"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/omics-rust/rsomics-fastq-preprocess"
+authors = ["Zane Leong <efd@live.com>"]
+categories = ["science", "command-line-utilities"]
+keywords = ["fastq", "bioinformatics", "fastp", "trimming", "filtering"]
+readme = "README.md"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+rayon = "1"
+rsomics-common = "0.6.4"
+rsomics-seqio = "0.2.0"
+same-file = "1"
+serde = { version = "1", features = ["derive"] }
+tempfile = "3"
+
+[dev-dependencies]
+criterion = { version = "0.7", default-features = false, features = ["cargo_bench_support"] }
+serde_json = "1"
+
+[[bench]]
+name = "pipeline"
+harness = false
