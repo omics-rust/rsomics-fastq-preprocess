@@ -527,6 +527,8 @@ dependencies = [
 [[package]]
 name = "rsomics-seqio"
 version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d2dcd0fab1a5320834a9b0f9cba7bbdd9bfe6b26c9c4740650ac88d939fcfcc5"
 dependencies = [
  "crossbeam-channel",
  "flate2",
