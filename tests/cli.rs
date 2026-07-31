@@ -607,8 +607,8 @@ fn paired_json_counts_each_mates_distinct_failure() {
 #[test]
 fn gzip_stdin_is_decoded_and_truncation_leaves_no_output() {
     let raw = b"@one\nACGT\n+\nIIII\n";
-    let mut writer =
-        rsomics_seqio::Writer::gzip(Vec::new(), rsomics_seqio::Format::Fastq, 4).unwrap();
+    let encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+    let mut writer = rsomics_seqio::Writer::new(encoder, rsomics_seqio::Format::Fastq);
     writer
         .write_record(rsomics_seqio::Record {
             id: b"one",
@@ -616,7 +616,7 @@ fn gzip_stdin_is_decoded_and_truncation_leaves_no_output() {
             qual: Some(b"IIII"),
         })
         .unwrap();
-    let encoded = writer.finish_into_inner().unwrap();
+    let encoded = writer.finish_into_inner().unwrap().finish().unwrap();
 
     let directory = tempfile::tempdir().unwrap();
     let decoded = directory.path().join("decoded.fastq");

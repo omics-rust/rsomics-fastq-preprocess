@@ -3,7 +3,7 @@ use std::io::Stdout;
 use std::path::{Path, PathBuf};
 
 use rsomics_common::{Context, Result, RsomicsError};
-use rsomics_seqio::{Compression, Format, OwnedRecord, Writer};
+use rsomics_seqio::{Format, OwnedRecord, Writer};
 use tempfile::NamedTempFile;
 
 use crate::parallel_gzip::ParallelGzipWriter;
@@ -60,11 +60,16 @@ enum TransactionWriter {
     Gzip(Writer<ParallelGzipWriter<File>>),
 }
 
+enum OutputCompression {
+    Plain,
+    Gzip { level: u32 },
+}
+
 impl TransactionWriter {
-    fn new(file: File, compression: Compression) -> Result<Self> {
+    fn new(file: File, compression: OutputCompression) -> Result<Self> {
         match compression {
-            Compression::Plain => Ok(Self::Plain(Writer::new(file, Format::Fastq))),
-            Compression::Gzip { level } => {
+            OutputCompression::Plain => Ok(Self::Plain(Writer::new(file, Format::Fastq))),
+            OutputCompression::Gzip { level } => {
                 let gzip = ParallelGzipWriter::new(file, level).map_err(RsomicsError::Io)?;
                 Ok(Self::Gzip(Writer::new(gzip, Format::Fastq)))
             }
@@ -194,10 +199,10 @@ fn reject_occupied(path: &Path) -> Result<()> {
     }
 }
 
-fn compression_for(path: &Path, gzip_level: u32) -> Compression {
+fn compression_for(path: &Path, gzip_level: u32) -> OutputCompression {
     if path.extension().is_some_and(|extension| extension == "gz") {
-        Compression::Gzip { level: gzip_level }
+        OutputCompression::Gzip { level: gzip_level }
     } else {
-        Compression::Plain
+        OutputCompression::Plain
     }
 }
