@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           repository: omics-rust/rsomics-seqio
-          ref: b23cf8ad29fd06c84aaaa0c480ba1da8cff01e7d
+          ref: 7b5b1c68f52ec4e86c79db028c0787b0d888faf2
           path: target/ci/rsomics-seqio
       - uses: actions/checkout@v6
         with:
