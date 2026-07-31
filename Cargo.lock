@@ -488,6 +488,8 @@ checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
 [[package]]
 name = "rsomics-common"
 version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2f9dd66f602bc9b61b53157652afb7e954b5658f2cfa545496cc2a16d8fff4a"
 dependencies = [
  "clap",
  "serde",
@@ -516,6 +518,8 @@ dependencies = [
 [[package]]
 name = "rsomics-help"
 version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5922ec5a261660869fc36aa05f731c0adb059c43344eb78c2393f05611797fe1"
 dependencies = [
  "clap",
 ]

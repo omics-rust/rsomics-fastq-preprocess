@@ -23,16 +23,6 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/checkout@v6
         with:
-          repository: omics-rust/rsomics-common
-          ref: 9f11f37c0fa48a24cae12549769f3395d9d0f19f
-          path: target/ci/rsomics-common
-      - uses: actions/checkout@v6
-        with:
-          repository: omics-rust/rsomics-help
-          ref: c615aa8b85224055faad57c86abd068aded89d06
-          path: target/ci/rsomics-help
-      - uses: actions/checkout@v6
-        with:
           repository: omics-rust/rsomics-seqio
           ref: b23cf8ad29fd06c84aaaa0c480ba1da8cff01e7d
           path: target/ci/rsomics-seqio
@@ -57,8 +47,6 @@ jobs:
           mkdir -p "$RUNNER_TEMP/cargo-home"
           cat > "$RUNNER_TEMP/cargo-home/config.toml" <<EOF
           [patch.crates-io]
-          rsomics-common = { path = "$GITHUB_WORKSPACE/target/ci/rsomics-common" }
-          rsomics-help = { path = "$GITHUB_WORKSPACE/target/ci/rsomics-help" }
           rsomics-seqio = { path = "$GITHUB_WORKSPACE/target/ci/rsomics-seqio" }
           EOF
           echo "CARGO_HOME=$RUNNER_TEMP/cargo-home" >> "$GITHUB_ENV"
