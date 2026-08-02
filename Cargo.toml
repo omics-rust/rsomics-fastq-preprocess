@@ -6,6 +6,8 @@ edition = "2024"
 rust-version = "1.91"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/omics-rust/rsomics-fastq-preprocess"
+homepage = "https://github.com/omics-rust/rsomics-fastq-preprocess"
+documentation = "https://docs.rs/rsomics-fastq-preprocess"
 authors = ["Zane Leong <efd@live.com>"]
 categories = ["science", "command-line-utilities"]
 keywords = ["fastq", "bioinformatics", "fastp", "trimming", "filtering"]
@@ -15,9 +17,9 @@ readme = "README.md"
 clap = { version = "4", features = ["derive"] }
 libdeflater = "1"
 rayon = "1"
-rsomics-common = "0.7"
+rsomics-common = "0.11"
 rsomics-help = "0.4"
-rsomics-seqio = "0.3"
+rsomics-seqio = "0.4"
 same-file = "1"
 serde = { version = "1", features = ["derive"] }
 tempfile = "3"
