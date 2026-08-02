@@ -1,5 +1,6 @@
 use std::num::NonZeroUsize;
 
+use rsomics_common::{Result, RsomicsError};
 use rsomics_seqio::OwnedRecord;
 
 /// Fixed 5-prime and 3-prime trimming.
@@ -45,6 +46,12 @@ pub struct TrimConfig {
     pub poly_x: Option<PolyTailConfig>,
 }
 
+impl TrimConfig {
+    pub(crate) fn validate(&self) -> Result<()> {
+        validate_poly_tails(self.poly_g, self.poly_x)
+    }
+}
+
 /// Per-record trimming counters.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct RecordTrimMetrics {
@@ -61,12 +68,27 @@ pub struct RecordTrimMetrics {
 }
 
 /// Applies fixed, poly-G, then poly-X trimming.
+///
+/// Returns an error when the record is not a complete FASTQ record or a
+/// poly-tail minimum is zero.
 pub fn trim_record(
     record: &mut OwnedRecord,
     fixed: FixedTrim,
     poly_g: Option<PolyTailConfig>,
     poly_x: Option<PolyTailConfig>,
-) -> RecordTrimMetrics {
+) -> Result<RecordTrimMetrics> {
+    let quality_len = record
+        .qual
+        .as_ref()
+        .ok_or_else(|| RsomicsError::InvalidInput("FASTQ record requires quality scores".into()))?
+        .len();
+    if record.seq.len() != quality_len {
+        return Err(RsomicsError::InvalidInput(format!(
+            "FASTQ sequence/quality length mismatch: {} vs {quality_len}",
+            record.seq.len()
+        )));
+    }
+    validate_poly_tails(poly_g, poly_x)?;
     let mut metrics = RecordTrimMetrics::default();
     apply_fixed(record, fixed, &mut metrics);
     if let Some(config) = poly_g {
@@ -75,7 +97,24 @@ pub fn trim_record(
     if let Some(config) = poly_x {
         apply_poly_x(record, config, &mut metrics);
     }
-    metrics
+    Ok(metrics)
+}
+
+fn validate_poly_tails(
+    poly_g: Option<PolyTailConfig>,
+    poly_x: Option<PolyTailConfig>,
+) -> Result<()> {
+    if poly_g.is_some_and(|config| config.min_len == 0) {
+        return Err(RsomicsError::ConfigError(
+            "poly-G minimum tail length must be positive".into(),
+        ));
+    }
+    if poly_x.is_some_and(|config| config.min_len == 0) {
+        return Err(RsomicsError::ConfigError(
+            "poly-X minimum tail length must be positive".into(),
+        ));
+    }
+    Ok(())
 }
 
 fn apply_fixed(record: &mut OwnedRecord, config: FixedTrim, metrics: &mut RecordTrimMetrics) {
@@ -219,7 +258,7 @@ mod tests {
     #[test]
     fn fixed_trim_keeps_quality_in_lockstep() {
         let mut value = record(b"NNACGTAA");
-        let metrics = trim_record(&mut value, FixedTrim { front: 2, tail: 2 }, None, None);
+        let metrics = trim_record(&mut value, FixedTrim { front: 2, tail: 2 }, None, None).unwrap();
         assert_eq!(value.seq, b"ACGT");
         assert_eq!(value.qual.as_deref(), Some(b"IIII".as_slice()));
         assert_eq!(metrics.fixed_bases, 4);
@@ -233,7 +272,7 @@ mod tests {
             max_mismatches: 1,
             mismatch_per_bases: NonZeroUsize::new(8).expect("nonzero"),
         };
-        let metrics = trim_record(&mut value, FixedTrim::default(), Some(config), None);
+        let metrics = trim_record(&mut value, FixedTrim::default(), Some(config), None).unwrap();
         assert_eq!(value.seq, b"ACGTACGT");
         assert_eq!(metrics.poly_g_bases, 10);
     }
@@ -246,20 +285,33 @@ mod tests {
             FixedTrim::default(),
             Some(PolyTailConfig::default()),
             None,
-        );
+        )
+        .unwrap();
         assert!(!metrics.poly_g_matched);
         assert_eq!(value.seq, b"ACGTACGTgggggggggg");
     }
 
     #[test]
-    fn all_poly_x_and_zero_min_len_do_not_underflow() {
+    fn zero_poly_x_minimum_is_rejected() {
         let mut value = record(b"AAAAAAAAAAAA");
         let config = PolyTailConfig {
             min_len: 0,
             ..PolyTailConfig::default()
         };
-        let metrics = trim_record(&mut value, FixedTrim::default(), None, Some(config));
-        assert!(metrics.poly_x_matched);
-        assert!(value.seq.is_empty());
+        assert!(trim_record(&mut value, FixedTrim::default(), None, Some(config)).is_err());
+    }
+
+    #[test]
+    fn malformed_owned_record_is_rejected() {
+        let mut missing = OwnedRecord {
+            id: b"read".to_vec(),
+            seq: b"ACGT".to_vec(),
+            qual: None,
+        };
+        assert!(trim_record(&mut missing, FixedTrim::default(), None, None).is_err());
+
+        let mut mismatched = record(b"ACGT");
+        mismatched.qual.as_mut().unwrap().pop();
+        assert!(trim_record(&mut mismatched, FixedTrim::default(), None, None).is_err());
     }
 }

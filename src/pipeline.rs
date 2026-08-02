@@ -53,12 +53,41 @@ pub struct IoSpec {
 /// Complete pipeline policy.
 #[derive(Debug, Clone)]
 pub struct PipelineConfig {
-    /// Operation name reported in JSON.
-    pub operation: Operation,
-    /// Optional trimming stage.
-    pub trim: Option<TrimConfig>,
-    /// Optional filtering stage.
-    pub filter: Option<FilterConfig>,
+    operation: Operation,
+    trim: Option<TrimConfig>,
+    filter: Option<FilterConfig>,
+}
+
+impl PipelineConfig {
+    /// Compose trimming and filtering in one pass.
+    #[must_use]
+    pub fn run(trim: TrimConfig, filter: FilterConfig) -> Self {
+        Self {
+            operation: Operation::Run,
+            trim: Some(trim),
+            filter: Some(filter),
+        }
+    }
+
+    /// Apply trimming with optional post-trim filtering.
+    #[must_use]
+    pub fn trim(trim: TrimConfig, filter: Option<FilterConfig>) -> Self {
+        Self {
+            operation: Operation::Trim,
+            trim: Some(trim),
+            filter,
+        }
+    }
+
+    /// Apply whole-read filtering without trimming.
+    #[must_use]
+    pub fn filter(filter: FilterConfig) -> Self {
+        Self {
+            operation: Operation::Filter,
+            trim: None,
+            filter: Some(filter),
+        }
+    }
 }
 
 /// Aggregate trimming counters.
@@ -223,11 +252,22 @@ impl PreprocessReport {
 
 /// Executes a single-end or paired-end pipeline.
 pub fn execute(io: &IoSpec, config: &PipelineConfig) -> Result<PreprocessReport> {
+    validate_config(config)?;
     let mode = validate_io(io)?;
     match mode {
         Mode::SingleEnd => execute_single_end(io, config),
         Mode::PairedEnd => execute_paired_end(io, config),
     }
+}
+
+fn validate_config(config: &PipelineConfig) -> Result<()> {
+    if let Some(trim) = config.trim.as_ref() {
+        trim.validate()?;
+    }
+    if let Some(filter) = config.filter {
+        filter.validate()?;
+    }
+    Ok(())
 }
 
 fn validate_io(io: &IoSpec) -> Result<Mode> {
@@ -445,7 +485,7 @@ fn process_single(mut record: OwnedRecord, config: &PipelineConfig) -> Result<Pr
     delta.bases_in = input_bases;
 
     if let Some(trim) = config.trim.as_ref() {
-        let metrics = trim_record(&mut record, trim.fixed_r1, trim.poly_g, trim.poly_x);
+        let metrics = trim_record(&mut record, trim.fixed_r1, trim.poly_g, trim.poly_x)?;
         add_trim_record(&mut delta.trimming, metrics);
     }
 
@@ -484,8 +524,8 @@ fn process_pair(
         .expect("two live record buffers fit in the supported address space");
 
     if let Some(trim) = config.trim.as_ref() {
-        let left_metrics = trim_record(&mut left, trim.fixed_r1, trim.poly_g, trim.poly_x);
-        let right_metrics = trim_record(&mut right, trim.fixed_r2, trim.poly_g, trim.poly_x);
+        let left_metrics = trim_record(&mut left, trim.fixed_r1, trim.poly_g, trim.poly_x)?;
+        let right_metrics = trim_record(&mut right, trim.fixed_r2, trim.poly_g, trim.poly_x)?;
         add_trim_record(&mut delta.trimming, left_metrics);
         add_trim_record(&mut delta.trimming, right_metrics);
     }
@@ -582,4 +622,45 @@ fn add_filter_outcome(total: &mut FilterMetrics, outcome: FilterOutcome) {
 
 fn metric_count(value: usize) -> u64 {
     u64::try_from(value).expect("usize fits in u64 on every supported 64-bit target")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn invalid_public_config_fails_before_output_creation() {
+        let directory = tempfile::tempdir().unwrap();
+        let output = directory.path().join("output.fastq");
+        let io = IoSpec {
+            input_r1: directory.path().join("missing.fastq").display().to_string(),
+            input_r2: None,
+            output_r1: output.display().to_string(),
+            output_r2: None,
+            gzip_level: 4,
+        };
+        let filter = FilterConfig {
+            unqualified_percent_limit: 101,
+            ..FilterConfig::default()
+        };
+
+        assert!(execute(&io, &PipelineConfig::filter(filter)).is_err());
+        assert!(!output.exists());
+    }
+
+    #[test]
+    fn constructors_bind_reported_operation_to_stages() {
+        assert_eq!(
+            PipelineConfig::run(TrimConfig::default(), FilterConfig::default()).operation,
+            Operation::Run
+        );
+        assert_eq!(
+            PipelineConfig::trim(TrimConfig::default(), None).operation,
+            Operation::Trim
+        );
+        assert_eq!(
+            PipelineConfig::filter(FilterConfig::default()).operation,
+            Operation::Filter
+        );
+    }
 }

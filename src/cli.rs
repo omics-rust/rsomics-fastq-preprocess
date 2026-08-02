@@ -5,7 +5,7 @@ use rayon::{ThreadPool, ThreadPoolBuilder};
 use rsomics_common::{OutputArgs, Result, RsomicsError, ToolMeta};
 
 use rsomics_fastq_preprocess::{
-    FilterConfig, FixedTrim, IoSpec, Operation, PhredEncoding, PipelineConfig, PolyTailConfig,
+    FilterConfig, FixedTrim, IoSpec, PhredEncoding, PipelineConfig, PolyTailConfig,
     PreprocessReport, TrimConfig, execute,
 };
 
@@ -341,27 +341,15 @@ impl Cli {
         let (io, config) = match self.command {
             Command::Run(args) => (
                 args.io.build(),
-                PipelineConfig {
-                    operation: Operation::Run,
-                    trim: Some(args.trim.build()?),
-                    filter: Some(args.filter.build()?),
-                },
+                PipelineConfig::run(args.trim.build()?, args.filter.build()?),
             ),
             Command::Trim(args) => (
                 args.io.build(),
-                PipelineConfig {
-                    operation: Operation::Trim,
-                    trim: Some(args.trim.build()?),
-                    filter: args.output.build()?,
-                },
+                PipelineConfig::trim(args.trim.build()?, args.output.build()?),
             ),
             Command::Filter(args) => (
                 args.io.build(),
-                PipelineConfig {
-                    operation: Operation::Filter,
-                    trim: None,
-                    filter: Some(args.filter.build()?),
-                },
+                PipelineConfig::filter(args.filter.build()?),
             ),
         };
         if json && io.output_r1 == "-" {

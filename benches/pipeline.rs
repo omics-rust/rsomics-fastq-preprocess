@@ -26,7 +26,8 @@ fn bench_pipeline(c: &mut Criterion) {
                     FixedTrim::default(),
                     Some(PolyTailConfig::default()),
                     None,
-                );
+                )
+                .expect("benchmark FASTQ record is valid");
                 let _ = filter
                     .check(
                         &record.seq,

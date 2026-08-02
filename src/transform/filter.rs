@@ -83,7 +83,23 @@ impl Default for FilterConfig {
 
 impl FilterConfig {
     /// Checks one FASTQ record using fastp v1.3.6 filter precedence.
+    ///
+    /// Returns an error for an invalid configuration, mismatched record
+    /// lengths, or quality bytes outside the selected encoding.
     pub fn check(self, seq: &[u8], qual: &[u8]) -> Result<FilterOutcome> {
+        self.validate()?;
+        if seq.len() != qual.len() {
+            return Err(RsomicsError::InvalidInput(format!(
+                "FASTQ sequence/quality length mismatch: {} vs {}",
+                seq.len(),
+                qual.len()
+            )));
+        }
+        if let Some(invalid) = qual.iter().copied().find(|quality| *quality > b'~') {
+            return Err(RsomicsError::InvalidInput(format!(
+                "FASTQ quality byte {invalid} exceeds printable ASCII 126"
+            )));
+        }
         if let Some(outcome) = self.empty_read_outcome(seq) {
             return Ok(outcome);
         }
@@ -99,6 +115,33 @@ impl FilterConfig {
             self.validate_quality_offset(qual)?;
         }
         self.check_after_offset_validation(seq, qual)
+    }
+
+    pub(crate) fn validate(self) -> Result<()> {
+        if self.qualified_quality_phred > 93 {
+            return Err(RsomicsError::ConfigError(
+                "qualified quality threshold must be in 0..=93".into(),
+            ));
+        }
+        if self.unqualified_percent_limit > 100 {
+            return Err(RsomicsError::ConfigError(
+                "unqualified-base percentage must be in 0..=100".into(),
+            ));
+        }
+        if self.average_quality > 93 {
+            return Err(RsomicsError::ConfigError(
+                "average quality threshold must be in 0..=93".into(),
+            ));
+        }
+        if self
+            .complexity_threshold
+            .is_some_and(|threshold| threshold > 100)
+        {
+            return Err(RsomicsError::ConfigError(
+                "complexity percentage must be in 0..=100".into(),
+            ));
+        }
+        Ok(())
     }
 
     fn empty_read_outcome(self, seq: &[u8]) -> Option<FilterOutcome> {
@@ -252,17 +295,29 @@ mod tests {
     }
 
     #[test]
-    fn public_phred33_check_rejects_bytes_below_ascii_quality_range() {
+    fn public_check_rejects_invalid_fastq_shape_and_quality() {
         let config = FilterConfig {
             quality_enabled: false,
             length_enabled: false,
             ..FilterConfig::default()
         };
         assert!(config.check(b"A", b" ").is_err());
+        assert!(config.check(b"A", &[127]).is_err());
+        assert!(config.check(b"AC", b"I").is_err());
+        assert!(config.check(b"", b" ").is_err());
         assert_eq!(
-            FilterConfig::default().check(b"", b" ").unwrap(),
+            FilterConfig::default().check(b"", b"").unwrap(),
             FilterOutcome::TooShort
         );
+    }
+
+    #[test]
+    fn public_check_rejects_invalid_configuration() {
+        let config = FilterConfig {
+            unqualified_percent_limit: 101,
+            ..FilterConfig::default()
+        };
+        assert!(config.check(b"A", b"I").is_err());
     }
 
     #[test]
