@@ -255,6 +255,54 @@ fn single_end_stdin_and_stdout_form_an_identity_pipeline() {
 }
 
 #[test]
+fn trim_and_filter_stream_composition_matches_run() {
+    let trim = run(&[
+        "trim",
+        "-i",
+        fixture("trim.fastq").to_str().unwrap(),
+        "-f",
+        "2",
+        "--trim-tail1",
+        "2",
+        "-g",
+        "-x",
+    ]);
+    assert!(trim.status.success());
+
+    let mut filter = Command::new(binary())
+        .args(["filter", "-Q", "-L"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    filter
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(&trim.stdout)
+        .unwrap();
+    let filtered = filter.wait_with_output().unwrap();
+    assert!(filtered.status.success());
+
+    let combined = run(&[
+        "run",
+        "-i",
+        fixture("trim.fastq").to_str().unwrap(),
+        "-f",
+        "2",
+        "--trim-tail1",
+        "2",
+        "-g",
+        "-x",
+        "-Q",
+        "-L",
+    ]);
+    assert!(combined.status.success());
+    assert_eq!(filtered.stdout, combined.stdout);
+}
+
+#[test]
 fn malformed_input_leaves_no_final_output() {
     let directory = tempfile::tempdir().unwrap();
     let input = directory.path().join("malformed.fastq");
