@@ -1,0 +1,66 @@
+{
+  "results": [
+    {
+      "command": "/data1/liangjy/rsomics-linux-x86_64-20260730/target-release-fd04e66/release/rsomics-fastq-preprocess --threads 4 run -i /data1/liangjy/rsomics-linux-x86_64-20260730/fixtures/SRR341550_1.fastq.gz -I /data1/liangjy/rsomics-linux-x86_64-20260730/fixtures/SRR341550_2.fastq.gz -o /data1/liangjy/rsomics-linux-x86_64-20260730/results/release-fd04e66/ours.r1.fastq.gz -O /data1/liangjy/rsomics-linux-x86_64-20260730/results/release-fd04e66/ours.r2.fastq.gz >/dev/null",
+      "mean": 10.914148850379998,
+      "stddev": 0.4928699336350066,
+      "median": 10.77720770678,
+      "user": 22.5550727,
+      "system": 0.5092055999999999,
+      "min": 10.44419987478,
+      "max": 11.56442526878,
+      "times": [
+        11.56442526878,
+        11.28506082278,
+        10.77720770678,
+        10.49985057878,
+        10.44419987478
+      ],
+      "memory_usage_byte": [
+        32350208,
+        32837632,
+        32837632,
+        33288192,
+        33288192
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "command": "/data1/liangjy/rsomics-linux-x86_64-20260730/oracles/src/fastp/fastp -w 4 -i /data1/liangjy/rsomics-linux-x86_64-20260730/fixtures/SRR341550_1.fastq.gz -I /data1/liangjy/rsomics-linux-x86_64-20260730/fixtures/SRR341550_2.fastq.gz -o /data1/liangjy/rsomics-linux-x86_64-20260730/results/release-fd04e66/fastp.r1.fastq.gz -O /data1/liangjy/rsomics-linux-x86_64-20260730/results/release-fd04e66/fastp.r2.fastq.gz -A -G --dont_eval_duplication -j /dev/null -h /dev/null >/dev/null 2>&1",
+      "mean": 14.68952752298,
+      "stddev": 0.7150794222715735,
+      "median": 14.52191056278,
+      "user": 47.565736699999995,
+      "system": 0.7983231999999999,
+      "min": 13.834892361780001,
+      "max": 15.72893550378,
+      "times": [
+        15.72893550378,
+        14.359747550780002,
+        14.52191056278,
+        15.00215163578,
+        13.834892361780001
+      ],
+      "memory_usage_byte": [
+        107728896,
+        107728896,
+        107728896,
+        107728896,
+        107728896
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "results": [
+    {
+      "command": "/data1/liangjy/rsomics-linux-x86_64-20260730/target-release-fd04e66/release/rsomics-fastq-preprocess --threads 4 run -i /data1/liangjy/rsomics-linux-x86_64-20260730/fixtures/SRR341550_1.fastq.gz -o /data1/liangjy/rsomics-linux-x86_64-20260730/results/release-fd04e66/ours.single.fastq.gz >/dev/null",
+      "mean": 5.969257800339999,
+      "stddev": 0.43112742076305965,
+      "median": 5.93117321894,
+      "user": 12.617222139999999,
+      "system": 0.30923916,
+      "min": 5.59160158994,
+      "max": 6.65848421894,
+      "times": [
+        6.04105576594,
+        6.65848421894,
+        5.62397420794,
+        5.59160158994,
+        5.93117321894
+      ],
+      "memory_usage_byte": [
+        22188032,
+        23322624,
+        23322624,
+        23322624,
+        23322624
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "command": "/data1/liangjy/rsomics-linux-x86_64-20260730/oracles/src/fastp/fastp -w 4 -i /data1/liangjy/rsomics-linux-x86_64-20260730/fixtures/SRR341550_1.fastq.gz -o /data1/liangjy/rsomics-linux-x86_64-20260730/results/release-fd04e66/fastp.single.fastq.gz -A -G --dont_eval_duplication -j /dev/null -h /dev/null >/dev/null 2>&1",
+      "mean": 5.50284163954,
+      "stddev": 0.8617506865679677,
+      "median": 5.83241019594,
+      "user": 21.82781754,
+      "system": 0.26911576000000004,
+      "min": 3.9950644569400002,
+      "max": 6.05099410894,
+      "times": [
+        6.05099410894,
+        3.9950644569400002,
+        5.83241019594,
+        6.02940341194,
+        5.60633602394
+      ],
+      "memory_usage_byte": [
+        52682752,
+        53600256,
+        53600256,
+        53600256,
+        53600256
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+	Command being timed: "/data1/liangjy/rsomics-linux-x86_64-20260730/target-release-fd04e66/release/rsomics-fastq-preprocess --threads 4 run -i /data1/liangjy/rsomics-linux-x86_64-20260730/fixtures/SRR341550_1.fastq.gz -I /data1/liangjy/rsomics-linux-x86_64-20260730/fixtures/SRR341550_2.fastq.gz -o /data1/liangjy/rsomics-linux-x86_64-20260730/results/release-fd04e66/ours.r1.fastq.gz -O /data1/liangjy/rsomics-linux-x86_64-20260730/results/release-fd04e66/ours.r2.fastq.gz"
+	User time (seconds): 22.77
+	System time (seconds): 0.52
+	Percent of CPU this job got: 211%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:11.00
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 32276
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 84643
+	Voluntary context switches: 15007
+	Involuntary context switches: 96
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 363560
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

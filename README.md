@@ -125,8 +125,9 @@ uses the command's local Rayon pool, so it does not add background worker
 threads beyond the requested processing pool. CI tests exact foundation
 revisions on native Linux and macOS for both `x86_64` and `aarch64`.
 
-A real compressed-output gate used SRR341550 on Ubuntu 22.04 / Linux 6.8,
-with two Intel Xeon Gold 6238R CPUs. Input SHA-256 values were
+A release-candidate compressed-output gate used production revision
+`fd04e662426d98f414c51d16a84a2e0eb643e010` on Ubuntu 22.04 / Linux 6.8,
+with two Intel Xeon Gold 6238R CPUs and Rust 1.91.0. Input SHA-256 values were
 `d7a15c1762d64a5434ced0cc665d7f5d167ca81a71e239f8237b9cd490dd7683`
 for R1 and
 `18a8e61af21d276dfaf12035307d673e3f52c9f3ac57658ee2f593d1aabeb1a4`
@@ -135,18 +136,15 @@ separate `/usr/bin/time -v` run.
 
 | Mode | Threads | rsomics | fastp 1.3.6 | Peak RSS, rsomics / fastp |
 |---|---:|---:|---:|---:|
-| paired | 1 | 22.308 ± 0.610 s | 39.091 ± 0.894 s | 31.5 / 88.7 MiB |
-| paired | 4 | 10.863 ± 0.298 s | 13.891 ± 0.447 s | 31.5 / 101.9 MiB |
-| single | 1 | 9.910 ± 0.186 s | 6.849 ± 0.090 s | not recorded |
-| single | 4 | 5.360 ± 0.075 s | 4.937 ± 0.721 s | 19.6 / 52.9 MiB |
+| paired | 4 | 10.914 ± 0.493 s | 14.690 ± 0.715 s | 31.5 / 99.2 MiB |
+| single | 4 | 5.969 ± 0.431 s | 5.503 ± 0.862 s | 18.0 / 51.1 MiB |
 
-The paired hot path is faster and uses substantially less memory. The
-single-end hot path is not a throughput win on this host; its demonstrated
-advantage is lower peak memory. Decompressed single-end and paired outputs are
-byte-identical to the aligned fastp slice. The paired gzip files are about
-0.07% larger than fastp's and about 1.3% larger than the previous serial
-zlib-rs output. `gzip -t`, SeqKit 2.13.0, and fastp 1.3.6 all read the
-concatenated-member output.
+The paired hot path was 1.35 times faster and used 68% less peak memory. The
+single-end hot path was not a throughput win on this host; its demonstrated
+advantage was 65% lower peak memory. Decompressed single-end and paired
+outputs were byte-identical to the aligned fastp slice. Raw Hyperfine JSON and
+`/usr/bin/time -v` records are retained under
+[`benchmarks/linux-x86_64-fastp-1.3.6`](benchmarks/linux-x86_64-fastp-1.3.6).
 
 The Criterion benchmark and `scripts/perf.sh` remain smoke scaffolds rather
 than substitutes for this representative external measurement.

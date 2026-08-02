@@ -16,10 +16,12 @@ All listed rsomics code is team-owned.
 
 Foundation revisions exercised by this slice:
 
-- `rsomics-seqio`
-  `ce9c5514c23573a64406e1ff9ad02edfa4d02d31`;
-- `rsomics-common`
-  `1c51f7d0b356683697942d9c6a0f60585e0dc8a9`.
+- `rsomics-common` 0.11.0,
+  `5bac25e251cc74c6a43e8302a3a6cc150886a340`;
+- `rsomics-help` 0.4.0,
+  `61dd6f2ce0cef6d9b4e349af5f96f96a7c95a013`;
+- `rsomics-seqio` 0.4.0,
+  `0c6ce988d8c90c5bfdaea00c1bcf53ae4aa443dd`.
 
 `rsomics-kmer` is deliberately not a dependency. fastp's selected complexity
 contract is adjacent-base change fraction, not a k-mer algorithm; adding the
@@ -94,6 +96,14 @@ checkpoint.
 - `rsomics-help` renders the product's real nested Clap tree without a second
   help model.
 
+The release API review also made arbitrary caller input safe: public trim and
+filter functions reject missing or mismatched qualities, invalid quality
+bytes, and invalid configuration rather than panicking or truncating through
+`zip`. `PipelineConfig` constructors bind the reported operation to the active
+stages. The already parsed internal record path avoids repeating those checks
+inside the production hot loop. An integration test proves that `trim` piped
+into `filter` produces the same FASTQ stream as `run` for the same stages.
+
 No performance result is inherited as a pass.
 
 ## Measured compressed-output gate
@@ -106,8 +116,10 @@ It preserves `rsomics-seqio::Writer` validation and serialization, empty gzip
 validity, flush-then-write ordering, downstream error propagation, and the
 existing no-clobber transaction.
 
-The Linux `x86_64` gate used Rust 1.91.0, fastp source commit
-`23d6211d4f05d61f561899f1b7702435a4b5d408`, and SRR341550 inputs:
+The final production-code gate used revision
+`fd04e662426d98f414c51d16a84a2e0eb643e010`, Rust 1.91.0, fastp source
+commit `23d6211d4f05d61f561899f1b7702435a4b5d408`, and SRR341550 inputs on
+Ubuntu 22.04, Linux 6.8.0, and a two-socket Intel Xeon Gold 6238R host:
 
 - R1 SHA-256:
   `d7a15c1762d64a5434ced0cc665d7f5d167ca81a71e239f8237b9cd490dd7683`;
@@ -117,23 +129,28 @@ The Linux `x86_64` gate used Rust 1.91.0, fastp source commit
   `f13cb655feedf78cf1f3c512675ad73323409f5862b0b3a6e5e3d48e21e6e365`;
 - filtered R2 byte-stream SHA-256:
   `452c78a98878e56bf1e5e7728b749e0277e0e14607fa465f7da3e83e551c078c`.
+- filtered single-end byte-stream SHA-256:
+  `9cc5172922740e7291bdf9fdfadc3d03370665fb0a8d4d4c4c5d4b930c800b58`.
 
-At four threads, ten measured paired runs were
-`10.863 ± 0.298 s` versus fastp's `13.891 ± 0.447 s`; peak RSS was
-31.5 MiB versus 101.9 MiB. At one thread, five measured paired runs were
-`22.308 ± 0.610 s` versus `39.091 ± 0.894 s`; peak RSS was 31.5 MiB
-versus 88.7 MiB.
+At four threads, five measured paired runs were
+`10.914 ± 0.493 s` versus fastp's `14.690 ± 0.715 s`; peak RSS was
+31.5 MiB versus 99.2 MiB. The paired slice was 1.35 times faster and used
+68% less peak memory on this host.
 
 Single-end output remained byte-identical but was slower: five-run means were
-`9.910 ± 0.186 s` versus `6.849 ± 0.090 s` at one thread and
-`5.360 ± 0.075 s` versus `4.937 ± 0.721 s` at four threads. The measured
-four-thread RSS was 19.6 MiB versus fastp's 52.9 MiB. This is a memory
-advantage, not a single-end throughput claim.
+`5.969 ± 0.431 s` versus `5.503 ± 0.862 s` at four threads. Peak RSS was
+18.0 MiB versus fastp's 51.1 MiB. This is a memory advantage, not a
+single-end throughput claim.
 
-The final gzip members passed `gzip -t` and were consumed by SeqKit 2.13.0 and
-fastp 1.3.6. Their paired file sizes were approximately 0.07% above fastp and
-1.3% above the previous serial zlib-rs output. Exact-head CI run
-`30551968781` passed native Linux and macOS on both `x86_64` and `aarch64`.
+The measured rsomics binary SHA-256 was
+`80aae1d1395627ad845f232eeda0652ab7edbcff012cd151ddf7dbf3c772422b`;
+the fastp binary SHA-256 was
+`8b0521f3d246e13178c49235c0a76230e5ee930fafcaf0db647a4210a4a65966`.
+Raw Hyperfine JSON and `/usr/bin/time -v` records are retained under
+`benchmarks/linux-x86_64-fastp-1.3.6`. Revision `fd5e1ec` changes only the
+broken-pipe integration-test harness, so the production source measured above
+is unchanged. Exact-head CI run `30726244422` passed native Linux and macOS on
+both `x86_64` and `aarch64` for that production and test tree.
 
 The backend remains private to this product. It is not a new foundation API;
 promotion requires a second concrete product consumer with the same contract.
