@@ -89,6 +89,15 @@ pub fn trim_record(
         )));
     }
     validate_poly_tails(poly_g, poly_x)?;
+    Ok(trim_seqio_record(record, fixed, poly_g, poly_x))
+}
+
+pub(crate) fn trim_seqio_record(
+    record: &mut OwnedRecord,
+    fixed: FixedTrim,
+    poly_g: Option<PolyTailConfig>,
+    poly_x: Option<PolyTailConfig>,
+) -> RecordTrimMetrics {
     let mut metrics = RecordTrimMetrics::default();
     apply_fixed(record, fixed, &mut metrics);
     if let Some(config) = poly_g {
@@ -97,7 +106,7 @@ pub fn trim_record(
     if let Some(config) = poly_x {
         apply_poly_x(record, config, &mut metrics);
     }
-    Ok(metrics)
+    metrics
 }
 
 fn validate_poly_tails(

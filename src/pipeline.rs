@@ -8,7 +8,7 @@ use serde::Serialize;
 use crate::input::{RecordSource, ensure_fastq, next_owned, same_mate_id};
 use crate::output::{OutputSink, TransactionOutput, finish_pair, validate_output_path};
 use crate::transform::filter::{FilterConfig, FilterOutcome};
-use crate::transform::trim::{RecordTrimMetrics, TrimConfig, trim_record};
+use crate::transform::trim::{RecordTrimMetrics, TrimConfig, trim_seqio_record};
 
 const CHUNK_RECORDS: usize = 4_096;
 
@@ -485,7 +485,7 @@ fn process_single(mut record: OwnedRecord, config: &PipelineConfig) -> Result<Pr
     delta.bases_in = input_bases;
 
     if let Some(trim) = config.trim.as_ref() {
-        let metrics = trim_record(&mut record, trim.fixed_r1, trim.poly_g, trim.poly_x)?;
+        let metrics = trim_seqio_record(&mut record, trim.fixed_r1, trim.poly_g, trim.poly_x);
         add_trim_record(&mut delta.trimming, metrics);
     }
 
@@ -524,8 +524,8 @@ fn process_pair(
         .expect("two live record buffers fit in the supported address space");
 
     if let Some(trim) = config.trim.as_ref() {
-        let left_metrics = trim_record(&mut left, trim.fixed_r1, trim.poly_g, trim.poly_x)?;
-        let right_metrics = trim_record(&mut right, trim.fixed_r2, trim.poly_g, trim.poly_x)?;
+        let left_metrics = trim_seqio_record(&mut left, trim.fixed_r1, trim.poly_g, trim.poly_x);
+        let right_metrics = trim_seqio_record(&mut right, trim.fixed_r2, trim.poly_g, trim.poly_x);
         add_trim_record(&mut delta.trimming, left_metrics);
         add_trim_record(&mut delta.trimming, right_metrics);
     }
