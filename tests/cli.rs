@@ -730,7 +730,9 @@ fn hardlink_and_symlink_output_aliases_preserve_input() {
 #[cfg(unix)]
 #[test]
 fn fastq_stdout_write_failure_is_nonzero() {
-    let mut child = Command::new(binary())
+    let (reader, writer) = std::os::unix::net::UnixStream::pair().unwrap();
+    drop(reader);
+    let output = Command::new(binary())
         .args([
             "filter",
             "-i",
@@ -738,12 +740,10 @@ fn fastq_stdout_write_failure_is_nonzero() {
             "-Q",
             "-L",
         ])
-        .stdout(Stdio::piped())
+        .stdout(Stdio::from(std::os::fd::OwnedFd::from(writer)))
         .stderr(Stdio::piped())
-        .spawn()
+        .output()
         .unwrap();
-    drop(child.stdout.take());
-    let output = child.wait_with_output().unwrap();
     assert!(!output.status.success());
     assert!(
         String::from_utf8_lossy(&output.stderr).contains("Broken pipe")
