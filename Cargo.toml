@@ -1,6 +1,6 @@
 [package]
 name = "rsomics-fastq-preprocess"
-version = "0.1.0"
+version = "0.1.1"
 description = "Single-pass FASTQ trimming and filtering for single-end and paired-end reads"
 edition = "2024"
 rust-version = "1.91"

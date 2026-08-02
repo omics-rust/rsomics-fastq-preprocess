@@ -2,7 +2,7 @@ use std::num::NonZeroUsize;
 
 use clap::{Args, Parser, Subcommand};
 use rayon::{ThreadPool, ThreadPoolBuilder};
-use rsomics_common::{OutputArgs, Result, RsomicsError, ToolMeta};
+use rsomics_common::{OutputArgs, Result, RsomicsError, ThreadArgs, ToolMeta};
 
 use rsomics_fastq_preprocess::{
     FilterConfig, FixedTrim, IoSpec, PhredEncoding, PipelineConfig, PolyTailConfig,
@@ -33,24 +33,14 @@ pub struct Cli {
     pub threads: ThreadArgs,
 }
 
-#[derive(Debug, Clone, Args)]
-#[command(next_help_heading = "Global options")]
-pub struct ThreadArgs {
-    /// Number of worker threads.
-    #[arg(short = 't', long, global = true)]
-    threads: Option<NonZeroUsize>,
-}
-
-impl ThreadArgs {
-    pub fn build(&self) -> Result<ThreadPool> {
-        let mut builder = ThreadPoolBuilder::new();
-        if let Some(threads) = self.threads {
-            builder = builder.num_threads(threads.get());
-        }
-        builder.build().map_err(|error| {
-            RsomicsError::ConfigError(format!("creating worker thread pool failed: {error}"))
-        })
+pub fn build_pool(threads: &ThreadArgs) -> Result<ThreadPool> {
+    let mut builder = ThreadPoolBuilder::new();
+    if let Some(threads) = threads.requested() {
+        builder = builder.num_threads(threads.get());
     }
+    builder.build().map_err(|error| {
+        RsomicsError::ConfigError(format!("creating worker thread pool failed: {error}"))
+    })
 }
 
 #[derive(Debug, Subcommand)]
@@ -376,7 +366,7 @@ mod tests {
     fn thread_limit_uses_a_local_pool() {
         let cli =
             Cli::try_parse_from(["rsomics-fastq-preprocess", "--threads", "1", "filter"]).unwrap();
-        let pool = cli.threads.build().unwrap();
+        let pool = build_pool(&cli.threads).unwrap();
         assert_eq!(pool.install(rayon::current_num_threads), 1);
     }
 
