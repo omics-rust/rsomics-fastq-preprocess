@@ -66,8 +66,15 @@ jobs:
       - if: matrix.runner == 'ubuntu-24.04'
         run: cargo clippy --locked --all-targets --all-features -- -D warnings
       - if: matrix.runner == 'ubuntu-24.04'
+        run: cargo doc --locked --no-deps --all-features
+        env:
+          RUSTDOCFLAGS: -D warnings
+      - if: matrix.runner == 'ubuntu-24.04'
         run: cargo package --locked
       - run: cargo test --locked --all-features
+        env:
+          RSOMICS_REQUIRE_FASTP: "1"
+      - run: cargo test --release --locked --all-features
         env:
           RSOMICS_REQUIRE_FASTP: "1"
       - if: matrix.runner == 'ubuntu-24.04'
