@@ -6,7 +6,7 @@ use rsomics_common::{OutputArgs, Result, RsomicsError, ThreadArgs, ToolMeta};
 
 use rsomics_fastq_preprocess::{
     FilterConfig, FixedTrim, IoSpec, PhredEncoding, PipelineConfig, PolyTailConfig,
-    PreprocessReport, TrimConfig, execute,
+    PreprocessReport, QualityCut, QualityWindow, TrimConfig, execute,
 };
 
 pub const META: ToolMeta = ToolMeta {
@@ -159,6 +159,9 @@ struct TrimOptions {
     /// Allow one poly-tail mismatch per this many scanned bases.
     #[arg(long, default_value_t = 8)]
     poly_mismatch_per_bases: usize,
+
+    #[command(flatten)]
+    quality: QualityOptions,
 }
 
 impl TrimOptions {
@@ -183,6 +186,7 @@ impl TrimOptions {
             mismatch_per_bases,
         };
         Ok(TrimConfig {
+            quality: self.quality.build(),
             fixed_r1: FixedTrim {
                 front: self.trim_front1,
                 tail: self.trim_tail1,
@@ -194,6 +198,64 @@ impl TrimOptions {
             poly_g: self.trim_poly_g.then(|| poly(self.poly_g_min_len)),
             poly_x: self.trim_poly_x.then(|| poly(self.poly_x_min_len)),
         })
+    }
+}
+
+#[derive(Debug, Clone, Args)]
+#[command(next_help_heading = "Quality trimming")]
+struct QualityOptions {
+    /// Remove leading low-quality windows.
+    #[arg(long)]
+    cut_front: bool,
+    /// Remove trailing low-quality windows; right mode takes precedence.
+    #[arg(long)]
+    cut_tail: bool,
+    /// Cut at the first low-quality window, retaining its good prefix.
+    #[arg(long)]
+    cut_right: bool,
+    /// Shared quality-window size.
+    #[arg(long, default_value_t = 4, value_parser = clap::value_parser!(u16).range(1..=1000))]
+    cut_window_size: u16,
+    /// Shared minimum mean Phred quality.
+    #[arg(long, default_value_t = 20, value_parser = clap::value_parser!(u8).range(1..=30))]
+    cut_mean_quality: u8,
+    /// Front-window size override.
+    #[arg(long, value_parser = clap::value_parser!(u16).range(1..=1000))]
+    cut_front_window_size: Option<u16>,
+    /// Front-window quality override.
+    #[arg(long, value_parser = clap::value_parser!(u8).range(1..=30))]
+    cut_front_mean_quality: Option<u8>,
+    /// Tail-window size override.
+    #[arg(long, value_parser = clap::value_parser!(u16).range(1..=1000))]
+    cut_tail_window_size: Option<u16>,
+    /// Tail-window quality override.
+    #[arg(long, value_parser = clap::value_parser!(u8).range(1..=30))]
+    cut_tail_mean_quality: Option<u8>,
+    /// Right-window size override.
+    #[arg(long, value_parser = clap::value_parser!(u16).range(1..=1000))]
+    cut_right_window_size: Option<u16>,
+    /// Right-window quality override.
+    #[arg(long, value_parser = clap::value_parser!(u8).range(1..=30))]
+    cut_right_mean_quality: Option<u8>,
+}
+
+impl QualityOptions {
+    fn build(&self) -> QualityCut {
+        let window = |size: Option<u16>, quality: Option<u8>| QualityWindow {
+            window_size: usize::from(size.unwrap_or(self.cut_window_size)),
+            mean_quality: quality.unwrap_or(self.cut_mean_quality),
+        };
+        QualityCut {
+            front: self
+                .cut_front
+                .then(|| window(self.cut_front_window_size, self.cut_front_mean_quality)),
+            tail: self
+                .cut_tail
+                .then(|| window(self.cut_tail_window_size, self.cut_tail_mean_quality)),
+            right: self
+                .cut_right
+                .then(|| window(self.cut_right_window_size, self.cut_right_mean_quality)),
+        }
     }
 }
 

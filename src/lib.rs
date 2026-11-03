@@ -15,4 +15,5 @@ pub use pipeline::{
     FilterMetrics, IoSpec, Mode, Operation, PipelineConfig, PreprocessReport, TrimMetrics, execute,
 };
 pub use transform::filter::{FilterConfig, FilterOutcome, PhredEncoding};
+pub use transform::quality::{QualityCut, QualityWindow};
 pub use transform::trim::{FixedTrim, PolyTailConfig, TrimConfig};

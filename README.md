@@ -3,8 +3,8 @@
 `rsomics-fastq-preprocess` is one coherent FASTQ preprocessing product. Its
 first consumer slice exposes:
 
-- `run`: fixed/poly-tail trimming and read filtering in one traversal;
-- `trim`: fixed, poly-G, and poly-X trimming;
+- `run`: fixed/quality/poly-tail trimming and read filtering in one traversal;
+- `trim`: fixed, quality-window, poly-G, and poly-X trimming;
 - `filter`: quality, average-quality, N, length, and low-complexity filtering.
 
 All three commands share the same strict single-end/paired-end engine. Input
@@ -64,7 +64,7 @@ FASTQ data to use a file output so reports never corrupt data stdout.
 
 ### Trimming
 
-The implemented order is fixed front/tail trimming, poly-G, then poly-X,
+The implemented order is fixed/quality-window trimming, poly-G, then poly-X,
 matching the retained subset of fastp's processing order. Poly-G and poly-X
 defaults use fastp v1.3.6's uppercase byte semantics, mismatch budgets, cut
 position, and A/T/C/G tie order. User-supplied mismatch-budget values are an
@@ -76,6 +76,32 @@ zero.
 `trim` performs no length filtering by default. Supplying
 `--length-required` or `--length-limit` explicitly enables the requested
 post-trim length gate.
+
+Quality-window cutting is opt-in through `--cut-front`, `--cut-tail`, or
+`--cut-right` on `run` and `trim`. The shared `--cut-window-size` defaults to4
+and `--cut-mean-quality` to20; per-mode window and mean overrides inherit these
+values when omitted. Window sizes are1..1000 and mean thresholds1..30.
+
+These are fastp1.3.6 semantics, not Trimmomatic sliding windows. Front cutting
+runs first; right cutting takes precedence over tail cutting. Right mode keeps
+the individually passing prefix inside its first failing window. Source-specific
+end-window boundaries are retained: each executed cut rejects remaining lengths
+no greater than its window. An empty read after this workflow
+is discarded even with ordinary quality/length filters disabled. Poly removal
+is not charged to quality-trimmed bases. Explicit Phred+64 input uses the same
+score thresholds and is emitted through the existing Phred+33 normalization.
+
+```bash
+rsomics-fastq-preprocess --threads 4 run \
+  -i R1.fastq.gz -I R2.fastq.gz -o clean.R1.fastq.gz -O clean.R2.fastq.gz \
+  --cut-front --cut-right --cut-window-size 4 --cut-mean-quality 20
+```
+
+The0.2 source candidate adds these settings to `TrimConfig`; existing standalone
+`trim_record` retains its fixed/poly-only contract. Quality-window measurements
+and the slower paired-gzip wall result are retained in
+[the benchmark record](benchmarks/2026-11-03-quality-windows.md). Candidate
+source does not imply that0.2 binaries or a registry version have been published.
 
 Adapter auto-detection, static adapter matching, and paired-overlap trimming
 are intentionally excluded. The historical rsomics implementations did not

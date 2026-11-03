@@ -71,8 +71,17 @@ from an old README.
 
 Adapter matching and overlap code from the old repositories is not migrated in
 this slice. Its defaults and cut choices were not exact fastp behavior.
-Sliding-window quality trimming is also excluded because the historical crate
-mixed Trimmomatic and fastp contracts.
+Sliding-window quality trimming was excluded from0.1 because the historical
+crate mixed Trimmomatic and fastp contracts. The0.2 source candidate rebuilds
+front/tail/right windows from pinned1.3.6 source and actual retained-read
+oracles rather than importing that mixed algorithm. Defaults, overrides,
+original-coordinate fixed clipping, right-over-tail priority and window-end
+rules match that oracle. Quality cuts precede poly tails; post-poly emptiness
+discards the read without misattributing poly removal to quality counters.
+New typed settings and report counters remain product-local, not a foundation.
+The existing strict invalid-Phred64 rejection is retained, not fastp's clamp.
+See `benchmarks/2026-11-03-quality-windows.md` for the separate new hot-path
+gate; older fixed/poly-only performance is not inherited.
 
 UMI, correction, merge, deduplication, BBDuk-style filtering, interleaved PE,
 instrument auto-detection, and the full fastp report remain outside this

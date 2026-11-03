@@ -8,7 +8,7 @@ use serde::Serialize;
 use crate::input::{RecordSource, ensure_fastq, next_owned, same_mate_id};
 use crate::output::{OutputSink, TransactionOutput, finish_pair, validate_output_path};
 use crate::transform::filter::{FilterConfig, FilterOutcome};
-use crate::transform::trim::{RecordTrimMetrics, TrimConfig, trim_seqio_record};
+use crate::transform::trim::{RecordTrimMetrics, TrimConfig, trim_config_record};
 
 const CHUNK_RECORDS: usize = 4_096;
 
@@ -93,6 +93,10 @@ impl PipelineConfig {
 /// Aggregate trimming counters.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
 pub struct TrimMetrics {
+    /// Reads shortened by quality-window cuts.
+    pub quality_trimmed_reads: u64,
+    /// Bases removed by quality-window cuts.
+    pub quality_trimmed_bases: u64,
     /// Reads with a poly-G match.
     pub poly_g_trimmed_reads: u64,
     /// Bases removed by poly-G trimming.
@@ -191,6 +195,16 @@ impl PreprocessReport {
         add!(self.pairs_out, delta.pairs_out, "output pair count");
         add!(self.bases_in, delta.bases_in, "input base count");
         add!(self.bases_out, delta.bases_out, "output base count");
+        add!(
+            self.trimming.quality_trimmed_reads,
+            delta.trimming.quality_trimmed_reads,
+            "quality-trimmed read count"
+        );
+        add!(
+            self.trimming.quality_trimmed_bases,
+            delta.trimming.quality_trimmed_bases,
+            "quality-trimmed base count"
+        );
         add!(
             self.trimming.poly_g_trimmed_reads,
             delta.trimming.poly_g_trimmed_reads,
@@ -484,12 +498,21 @@ fn process_single(mut record: OwnedRecord, config: &PipelineConfig) -> Result<Pr
     delta.reads_in = 1;
     delta.bases_in = input_bases;
 
+    let mut trim_discarded = false;
     if let Some(trim) = config.trim.as_ref() {
-        let metrics = trim_seqio_record(&mut record, trim.fixed_r1, trim.poly_g, trim.poly_x);
-        add_trim_record(&mut delta.trimming, metrics);
+        let phred = config
+            .filter
+            .map_or(crate::PhredEncoding::Phred33, |f| f.phred);
+        let trimmed = trim_config_record(&mut record, trim.fixed_r1, trim, phred)?;
+        trim_discarded = trimmed.discarded;
+        add_trim_record(&mut delta.trimming, trimmed.metrics);
     }
 
-    let outcome = check_record(&record, config.filter)?;
+    let outcome = if trim_discarded {
+        FilterOutcome::TooShort
+    } else {
+        check_record(&record, config.filter)?
+    };
     if outcome == FilterOutcome::Pass {
         normalize_output_quality(&mut record, config.filter);
         delta.reads_out = 1;
@@ -523,15 +546,28 @@ fn process_pair(
         .checked_add(metric_count(right.seq.len()))
         .expect("two live record buffers fit in the supported address space");
 
+    let mut discarded = (false, false);
     if let Some(trim) = config.trim.as_ref() {
-        let left_metrics = trim_seqio_record(&mut left, trim.fixed_r1, trim.poly_g, trim.poly_x);
-        let right_metrics = trim_seqio_record(&mut right, trim.fixed_r2, trim.poly_g, trim.poly_x);
-        add_trim_record(&mut delta.trimming, left_metrics);
-        add_trim_record(&mut delta.trimming, right_metrics);
+        let phred = config
+            .filter
+            .map_or(crate::PhredEncoding::Phred33, |f| f.phred);
+        let left_metrics = trim_config_record(&mut left, trim.fixed_r1, trim, phred)?;
+        let right_metrics = trim_config_record(&mut right, trim.fixed_r2, trim, phred)?;
+        discarded = (left_metrics.discarded, right_metrics.discarded);
+        add_trim_record(&mut delta.trimming, left_metrics.metrics);
+        add_trim_record(&mut delta.trimming, right_metrics.metrics);
     }
 
-    let left_outcome = check_record(&left, config.filter)?;
-    let right_outcome = check_record(&right, config.filter)?;
+    let left_outcome = if discarded.0 {
+        FilterOutcome::TooShort
+    } else {
+        check_record(&left, config.filter)?
+    };
+    let right_outcome = if discarded.1 {
+        FilterOutcome::TooShort
+    } else {
+        check_record(&right, config.filter)?
+    };
     if left_outcome == FilterOutcome::Pass && right_outcome == FilterOutcome::Pass {
         normalize_output_quality(&mut left, config.filter);
         normalize_output_quality(&mut right, config.filter);
@@ -601,6 +637,8 @@ fn blank_delta(config: &PipelineConfig, mode: Mode) -> PreprocessReport {
 }
 
 fn add_trim_record(total: &mut TrimMetrics, record: RecordTrimMetrics) {
+    total.quality_trimmed_reads += u64::from(record.quality_bases > 0);
+    total.quality_trimmed_bases += record.quality_bases;
     total.fixed_trimmed_bases += record.fixed_bases;
     total.poly_g_trimmed_reads += u64::from(record.poly_g_matched);
     total.poly_g_trimmed_bases += record.poly_g_bases;

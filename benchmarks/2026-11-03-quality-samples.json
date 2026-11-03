@@ -1,0 +1,1104 @@
+{
+  "platform": "macOS-27.2-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "rows_per_mate": 1000000,
+  "read_length": 150,
+  "head": "89d4f534f90eca7ce84cf0929474047bd1139d38",
+  "dirty": " M src/cli.rs\n M src/lib.rs\n M src/pipeline.rs\n M src/transform/mod.rs\n M src/transform/trim.rs\n M tests/fastp_compat.rs\n?? src/transform/quality.rs\n",
+  "source_pins": {
+    "/Volumes/KIOXIA/Documents/omics-rust/rsomics-fastq-preprocess/src/parallel_gzip.rs": {
+      "bytes": 6450,
+      "sha256": "bff193ecf929b468e31848492c4ab444d7269e84992833936ad944c9d88ec1fe"
+    },
+    "/Volumes/KIOXIA/Documents/omics-rust/rsomics-fastq-preprocess/src/lib.rs": {
+      "bytes": 607,
+      "sha256": "ee0781e54f38c4717589602c648e859139770465ea2be96d8dd58c0e9b455a8a"
+    },
+    "/Volumes/KIOXIA/Documents/omics-rust/rsomics-fastq-preprocess/src/output.rs": {
+      "bytes": 6359,
+      "sha256": "bb8789af15180e833308e658fcd93bd78b3b8b79781516633e391454683a19a4"
+    },
+    "/Volumes/KIOXIA/Documents/omics-rust/rsomics-fastq-preprocess/src/main.rs": {
+      "bytes": 302,
+      "sha256": "11aab3d84fb720737a396fd43e69855ee2419e81b459156984c0667589610e25"
+    },
+    "/Volumes/KIOXIA/Documents/omics-rust/rsomics-fastq-preprocess/src/input.rs": {
+      "bytes": 3348,
+      "sha256": "d5d861ed859ad30d4e27849e07f7277a64c72f9652c7b843760313fd1c00a6ff"
+    },
+    "/Volumes/KIOXIA/Documents/omics-rust/rsomics-fastq-preprocess/src/pipeline.rs": {
+      "bytes": 24149,
+      "sha256": "6a47a4c03ca0c26dd969a106ac5970ada59a40c3f4262e9df34f9036ac741892"
+    },
+    "/Volumes/KIOXIA/Documents/omics-rust/rsomics-fastq-preprocess/src/cli.rs": {
+      "bytes": 15777,
+      "sha256": "3287e03569e59c0acd5c110a83994aa94f0af9b35ac41166b147bfb226fbb152"
+    },
+    "/Volumes/KIOXIA/Documents/omics-rust/rsomics-fastq-preprocess/src/transform/trim.rs": {
+      "bytes": 12310,
+      "sha256": "704fd3d67a8ba83e73c5be4c3d168ddb4fa21f44f1069d8626fa612c8231ddd2"
+    },
+    "/Volumes/KIOXIA/Documents/omics-rust/rsomics-fastq-preprocess/src/transform/mod.rs": {
+      "bytes": 207,
+      "sha256": "ce558be0b400e21d56072de3c144dadcf906d3a03cd5d933253a198cb341ba33"
+    },
+    "/Volumes/KIOXIA/Documents/omics-rust/rsomics-fastq-preprocess/src/transform/quality.rs": {
+      "bytes": 4578,
+      "sha256": "9437bc7446547d917f4664bd2fd90a6c62857c41edc17d70e8ea8514102da428"
+    },
+    "/Volumes/KIOXIA/Documents/omics-rust/rsomics-fastq-preprocess/src/transform/filter.rs": {
+      "bytes": 11592,
+      "sha256": "8694b0669cb2e6f56f51cdab74c0081c3ac3d48dee1e3923d7f0f29abb3e6579"
+    },
+    "/Volumes/KIOXIA/Documents/omics-rust/rsomics-fastq-preprocess/Cargo.toml": {
+      "bytes": 1100,
+      "sha256": "e19b6783031836720ea25cccdb6a1347c532aeaf2a5eb827b09781bc23aa9603"
+    },
+    "/Volumes/KIOXIA/Documents/omics-rust/rsomics-fastq-preprocess/Cargo.lock": {
+      "bytes": 19907,
+      "sha256": "21f4df8a047026b1c8120100c96d1687764f7596469136d234a20da7755431dd"
+    }
+  },
+  "samples": [
+    {
+      "workflow": "single-stdout",
+      "iteration": 0,
+      "warmup": true,
+      "implementation": "native",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/native",
+        "--threads",
+        "1",
+        "run",
+        "-Q",
+        "-L",
+        "--cut-front",
+        "--cut-right",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-o",
+        "-"
+      ],
+      "wall_seconds": 1.919323500012979,
+      "time_real": 1.91,
+      "user_seconds": 0.5,
+      "system_seconds": 0.15,
+      "peak_rss_bytes": 6995968,
+      "outputs_checked": [
+        {
+          "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+          "records": 960000
+        }
+      ]
+    },
+    {
+      "workflow": "single-stdout",
+      "iteration": 0,
+      "warmup": true,
+      "implementation": "source",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-source-20261103.98ZifXEs/fastp-23d6211d4f05d61f561899f1b7702435a4b5d408/fastp",
+        "-w",
+        "1",
+        "-A",
+        "-G",
+        "-Q",
+        "-L",
+        "--cut_front",
+        "--cut_right",
+        "--dont_eval_duplication",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-j",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/single-stdout-0-source/report.json",
+        "-h",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/single-stdout-0-source/report.html",
+        "--stdout"
+      ],
+      "wall_seconds": 1.6642604999942705,
+      "time_real": 1.65,
+      "user_seconds": 1.18,
+      "system_seconds": 0.18,
+      "peak_rss_bytes": 47693824,
+      "outputs_checked": [
+        {
+          "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+          "records": 960000
+        }
+      ]
+    },
+    {
+      "workflow": "single-stdout",
+      "iteration": 1,
+      "warmup": false,
+      "implementation": "source",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-source-20261103.98ZifXEs/fastp-23d6211d4f05d61f561899f1b7702435a4b5d408/fastp",
+        "-w",
+        "1",
+        "-A",
+        "-G",
+        "-Q",
+        "-L",
+        "--cut_front",
+        "--cut_right",
+        "--dont_eval_duplication",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-j",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/single-stdout-1-source/report.json",
+        "-h",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/single-stdout-1-source/report.html",
+        "--stdout"
+      ],
+      "wall_seconds": 0.9715585829690099,
+      "time_real": 0.96,
+      "user_seconds": 1.12,
+      "system_seconds": 0.08,
+      "peak_rss_bytes": 34504704,
+      "outputs_checked": null
+    },
+    {
+      "workflow": "single-stdout",
+      "iteration": 1,
+      "warmup": false,
+      "implementation": "native",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/native",
+        "--threads",
+        "1",
+        "run",
+        "-Q",
+        "-L",
+        "--cut-front",
+        "--cut-right",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-o",
+        "-"
+      ],
+      "wall_seconds": 0.4553735420340672,
+      "time_real": 0.45,
+      "user_seconds": 0.42,
+      "system_seconds": 0.02,
+      "peak_rss_bytes": 6733824,
+      "outputs_checked": null
+    },
+    {
+      "workflow": "single-stdout",
+      "iteration": 2,
+      "warmup": false,
+      "implementation": "native",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/native",
+        "--threads",
+        "1",
+        "run",
+        "-Q",
+        "-L",
+        "--cut-front",
+        "--cut-right",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-o",
+        "-"
+      ],
+      "wall_seconds": 0.45767658401746303,
+      "time_real": 0.45,
+      "user_seconds": 0.42,
+      "system_seconds": 0.02,
+      "peak_rss_bytes": 6684672,
+      "outputs_checked": null
+    },
+    {
+      "workflow": "single-stdout",
+      "iteration": 2,
+      "warmup": false,
+      "implementation": "source",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-source-20261103.98ZifXEs/fastp-23d6211d4f05d61f561899f1b7702435a4b5d408/fastp",
+        "-w",
+        "1",
+        "-A",
+        "-G",
+        "-Q",
+        "-L",
+        "--cut_front",
+        "--cut_right",
+        "--dont_eval_duplication",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-j",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/single-stdout-2-source/report.json",
+        "-h",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/single-stdout-2-source/report.html",
+        "--stdout"
+      ],
+      "wall_seconds": 0.9270570419030264,
+      "time_real": 0.92,
+      "user_seconds": 1.11,
+      "system_seconds": 0.07,
+      "peak_rss_bytes": 40009728,
+      "outputs_checked": null
+    },
+    {
+      "workflow": "single-stdout",
+      "iteration": 3,
+      "warmup": false,
+      "implementation": "source",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-source-20261103.98ZifXEs/fastp-23d6211d4f05d61f561899f1b7702435a4b5d408/fastp",
+        "-w",
+        "1",
+        "-A",
+        "-G",
+        "-Q",
+        "-L",
+        "--cut_front",
+        "--cut_right",
+        "--dont_eval_duplication",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-j",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/single-stdout-3-source/report.json",
+        "-h",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/single-stdout-3-source/report.html",
+        "--stdout"
+      ],
+      "wall_seconds": 0.9285846250131726,
+      "time_real": 0.92,
+      "user_seconds": 1.11,
+      "system_seconds": 0.07,
+      "peak_rss_bytes": 40861696,
+      "outputs_checked": null
+    },
+    {
+      "workflow": "single-stdout",
+      "iteration": 3,
+      "warmup": false,
+      "implementation": "native",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/native",
+        "--threads",
+        "1",
+        "run",
+        "-Q",
+        "-L",
+        "--cut-front",
+        "--cut-right",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-o",
+        "-"
+      ],
+      "wall_seconds": 0.45476016704924405,
+      "time_real": 0.45,
+      "user_seconds": 0.42,
+      "system_seconds": 0.02,
+      "peak_rss_bytes": 6701056,
+      "outputs_checked": null
+    },
+    {
+      "workflow": "single-stdout",
+      "iteration": 4,
+      "warmup": false,
+      "implementation": "native",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/native",
+        "--threads",
+        "1",
+        "run",
+        "-Q",
+        "-L",
+        "--cut-front",
+        "--cut-right",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-o",
+        "-"
+      ],
+      "wall_seconds": 0.4548109999159351,
+      "time_real": 0.45,
+      "user_seconds": 0.42,
+      "system_seconds": 0.02,
+      "peak_rss_bytes": 6684672,
+      "outputs_checked": null
+    },
+    {
+      "workflow": "single-stdout",
+      "iteration": 4,
+      "warmup": false,
+      "implementation": "source",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-source-20261103.98ZifXEs/fastp-23d6211d4f05d61f561899f1b7702435a4b5d408/fastp",
+        "-w",
+        "1",
+        "-A",
+        "-G",
+        "-Q",
+        "-L",
+        "--cut_front",
+        "--cut_right",
+        "--dont_eval_duplication",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-j",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/single-stdout-4-source/report.json",
+        "-h",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/single-stdout-4-source/report.html",
+        "--stdout"
+      ],
+      "wall_seconds": 0.9281475419411436,
+      "time_real": 0.92,
+      "user_seconds": 1.11,
+      "system_seconds": 0.07,
+      "peak_rss_bytes": 40910848,
+      "outputs_checked": null
+    },
+    {
+      "workflow": "single-stdout",
+      "iteration": 5,
+      "warmup": false,
+      "implementation": "source",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-source-20261103.98ZifXEs/fastp-23d6211d4f05d61f561899f1b7702435a4b5d408/fastp",
+        "-w",
+        "1",
+        "-A",
+        "-G",
+        "-Q",
+        "-L",
+        "--cut_front",
+        "--cut_right",
+        "--dont_eval_duplication",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-j",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/single-stdout-5-source/report.json",
+        "-h",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/single-stdout-5-source/report.html",
+        "--stdout"
+      ],
+      "wall_seconds": 0.9252820829860866,
+      "time_real": 0.92,
+      "user_seconds": 1.11,
+      "system_seconds": 0.07,
+      "peak_rss_bytes": 40878080,
+      "outputs_checked": null
+    },
+    {
+      "workflow": "single-stdout",
+      "iteration": 5,
+      "warmup": false,
+      "implementation": "native",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/native",
+        "--threads",
+        "1",
+        "run",
+        "-Q",
+        "-L",
+        "--cut-front",
+        "--cut-right",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-o",
+        "-"
+      ],
+      "wall_seconds": 0.45905099995434284,
+      "time_real": 0.45,
+      "user_seconds": 0.42,
+      "system_seconds": 0.02,
+      "peak_rss_bytes": 6668288,
+      "outputs_checked": null
+    },
+    {
+      "workflow": "paired-gzip",
+      "iteration": 0,
+      "warmup": true,
+      "implementation": "native",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/native",
+        "--threads",
+        "4",
+        "run",
+        "-Q",
+        "-L",
+        "--cut-front",
+        "--cut-right",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-I",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r2.fastq",
+        "-o",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-0-native/r1.fastq.gz",
+        "-O",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-0-native/r2.fastq.gz",
+        "--gzip-level",
+        "4"
+      ],
+      "wall_seconds": 1.7887603749986738,
+      "time_real": 1.78,
+      "user_seconds": 3.56,
+      "system_seconds": 0.29,
+      "peak_rss_bytes": 31703040,
+      "outputs_checked": [
+        {
+          "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+          "records": 960000
+        },
+        {
+          "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+          "records": 960000
+        }
+      ]
+    },
+    {
+      "workflow": "paired-gzip",
+      "iteration": 0,
+      "warmup": true,
+      "implementation": "source",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-source-20261103.98ZifXEs/fastp-23d6211d4f05d61f561899f1b7702435a4b5d408/fastp",
+        "-w",
+        "4",
+        "-A",
+        "-G",
+        "-Q",
+        "-L",
+        "--cut_front",
+        "--cut_right",
+        "--dont_eval_duplication",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-j",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-0-source/report.json",
+        "-h",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-0-source/report.html",
+        "-I",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r2.fastq",
+        "-o",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-0-source/r1.fastq.gz",
+        "-O",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-0-source/r2.fastq.gz",
+        "-z",
+        "4"
+      ],
+      "wall_seconds": 2.0094502499559894,
+      "time_real": 2.0,
+      "user_seconds": 6.55,
+      "system_seconds": 0.8,
+      "peak_rss_bytes": 82018304,
+      "outputs_checked": [
+        {
+          "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+          "records": 960000
+        },
+        {
+          "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+          "records": 960000
+        }
+      ]
+    },
+    {
+      "workflow": "paired-gzip",
+      "iteration": 1,
+      "warmup": false,
+      "implementation": "source",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-source-20261103.98ZifXEs/fastp-23d6211d4f05d61f561899f1b7702435a4b5d408/fastp",
+        "-w",
+        "4",
+        "-A",
+        "-G",
+        "-Q",
+        "-L",
+        "--cut_front",
+        "--cut_right",
+        "--dont_eval_duplication",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-j",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-1-source/report.json",
+        "-h",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-1-source/report.html",
+        "-I",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r2.fastq",
+        "-o",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-1-source/r1.fastq.gz",
+        "-O",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-1-source/r2.fastq.gz",
+        "-z",
+        "4"
+      ],
+      "wall_seconds": 1.9986702910391614,
+      "time_real": 1.99,
+      "user_seconds": 6.59,
+      "system_seconds": 0.78,
+      "peak_rss_bytes": 94699520,
+      "outputs_checked": [
+        {
+          "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+          "records": 960000
+        },
+        {
+          "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+          "records": 960000
+        }
+      ]
+    },
+    {
+      "workflow": "paired-gzip",
+      "iteration": 1,
+      "warmup": false,
+      "implementation": "native",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/native",
+        "--threads",
+        "4",
+        "run",
+        "-Q",
+        "-L",
+        "--cut-front",
+        "--cut-right",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-I",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r2.fastq",
+        "-o",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-1-native/r1.fastq.gz",
+        "-O",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-1-native/r2.fastq.gz",
+        "--gzip-level",
+        "4"
+      ],
+      "wall_seconds": 2.7921609999611974,
+      "time_real": 2.77,
+      "user_seconds": 4.06,
+      "system_seconds": 0.41,
+      "peak_rss_bytes": 34160640,
+      "outputs_checked": [
+        {
+          "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+          "records": 960000
+        },
+        {
+          "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+          "records": 960000
+        }
+      ]
+    },
+    {
+      "workflow": "paired-gzip",
+      "iteration": 2,
+      "warmup": false,
+      "implementation": "native",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/native",
+        "--threads",
+        "4",
+        "run",
+        "-Q",
+        "-L",
+        "--cut-front",
+        "--cut-right",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-I",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r2.fastq",
+        "-o",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-2-native/r1.fastq.gz",
+        "-O",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-2-native/r2.fastq.gz",
+        "--gzip-level",
+        "4"
+      ],
+      "wall_seconds": 2.460113500012085,
+      "time_real": 2.45,
+      "user_seconds": 3.67,
+      "system_seconds": 0.32,
+      "peak_rss_bytes": 32210944,
+      "outputs_checked": [
+        {
+          "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+          "records": 960000
+        },
+        {
+          "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+          "records": 960000
+        }
+      ]
+    },
+    {
+      "workflow": "paired-gzip",
+      "iteration": 2,
+      "warmup": false,
+      "implementation": "source",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-source-20261103.98ZifXEs/fastp-23d6211d4f05d61f561899f1b7702435a4b5d408/fastp",
+        "-w",
+        "4",
+        "-A",
+        "-G",
+        "-Q",
+        "-L",
+        "--cut_front",
+        "--cut_right",
+        "--dont_eval_duplication",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-j",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-2-source/report.json",
+        "-h",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-2-source/report.html",
+        "-I",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r2.fastq",
+        "-o",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-2-source/r1.fastq.gz",
+        "-O",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-2-source/r2.fastq.gz",
+        "-z",
+        "4"
+      ],
+      "wall_seconds": 2.253534874995239,
+      "time_real": 2.24,
+      "user_seconds": 7.01,
+      "system_seconds": 0.91,
+      "peak_rss_bytes": 99418112,
+      "outputs_checked": [
+        {
+          "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+          "records": 960000
+        },
+        {
+          "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+          "records": 960000
+        }
+      ]
+    },
+    {
+      "workflow": "paired-gzip",
+      "iteration": 3,
+      "warmup": false,
+      "implementation": "source",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-source-20261103.98ZifXEs/fastp-23d6211d4f05d61f561899f1b7702435a4b5d408/fastp",
+        "-w",
+        "4",
+        "-A",
+        "-G",
+        "-Q",
+        "-L",
+        "--cut_front",
+        "--cut_right",
+        "--dont_eval_duplication",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-j",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-3-source/report.json",
+        "-h",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-3-source/report.html",
+        "-I",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r2.fastq",
+        "-o",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-3-source/r1.fastq.gz",
+        "-O",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-3-source/r2.fastq.gz",
+        "-z",
+        "4"
+      ],
+      "wall_seconds": 2.022412542020902,
+      "time_real": 2.01,
+      "user_seconds": 6.51,
+      "system_seconds": 0.79,
+      "peak_rss_bytes": 101941248,
+      "outputs_checked": [
+        {
+          "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+          "records": 960000
+        },
+        {
+          "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+          "records": 960000
+        }
+      ]
+    },
+    {
+      "workflow": "paired-gzip",
+      "iteration": 3,
+      "warmup": false,
+      "implementation": "native",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/native",
+        "--threads",
+        "4",
+        "run",
+        "-Q",
+        "-L",
+        "--cut-front",
+        "--cut-right",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-I",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r2.fastq",
+        "-o",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-3-native/r1.fastq.gz",
+        "-O",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-3-native/r2.fastq.gz",
+        "--gzip-level",
+        "4"
+      ],
+      "wall_seconds": 2.5745116249891,
+      "time_real": 2.56,
+      "user_seconds": 3.76,
+      "system_seconds": 0.35,
+      "peak_rss_bytes": 31637504,
+      "outputs_checked": [
+        {
+          "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+          "records": 960000
+        },
+        {
+          "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+          "records": 960000
+        }
+      ]
+    },
+    {
+      "workflow": "paired-gzip",
+      "iteration": 4,
+      "warmup": false,
+      "implementation": "native",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/native",
+        "--threads",
+        "4",
+        "run",
+        "-Q",
+        "-L",
+        "--cut-front",
+        "--cut-right",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-I",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r2.fastq",
+        "-o",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-4-native/r1.fastq.gz",
+        "-O",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-4-native/r2.fastq.gz",
+        "--gzip-level",
+        "4"
+      ],
+      "wall_seconds": 2.6431503749918193,
+      "time_real": 2.63,
+      "user_seconds": 3.88,
+      "system_seconds": 0.37,
+      "peak_rss_bytes": 33341440,
+      "outputs_checked": [
+        {
+          "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+          "records": 960000
+        },
+        {
+          "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+          "records": 960000
+        }
+      ]
+    },
+    {
+      "workflow": "paired-gzip",
+      "iteration": 4,
+      "warmup": false,
+      "implementation": "source",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-source-20261103.98ZifXEs/fastp-23d6211d4f05d61f561899f1b7702435a4b5d408/fastp",
+        "-w",
+        "4",
+        "-A",
+        "-G",
+        "-Q",
+        "-L",
+        "--cut_front",
+        "--cut_right",
+        "--dont_eval_duplication",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-j",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-4-source/report.json",
+        "-h",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-4-source/report.html",
+        "-I",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r2.fastq",
+        "-o",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-4-source/r1.fastq.gz",
+        "-O",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-4-source/r2.fastq.gz",
+        "-z",
+        "4"
+      ],
+      "wall_seconds": 2.036269999924116,
+      "time_real": 2.03,
+      "user_seconds": 6.56,
+      "system_seconds": 0.82,
+      "peak_rss_bytes": 100564992,
+      "outputs_checked": [
+        {
+          "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+          "records": 960000
+        },
+        {
+          "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+          "records": 960000
+        }
+      ]
+    },
+    {
+      "workflow": "paired-gzip",
+      "iteration": 5,
+      "warmup": false,
+      "implementation": "source",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-source-20261103.98ZifXEs/fastp-23d6211d4f05d61f561899f1b7702435a4b5d408/fastp",
+        "-w",
+        "4",
+        "-A",
+        "-G",
+        "-Q",
+        "-L",
+        "--cut_front",
+        "--cut_right",
+        "--dont_eval_duplication",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-j",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-5-source/report.json",
+        "-h",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-5-source/report.html",
+        "-I",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r2.fastq",
+        "-o",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-5-source/r1.fastq.gz",
+        "-O",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-5-source/r2.fastq.gz",
+        "-z",
+        "4"
+      ],
+      "wall_seconds": 2.0054277919698507,
+      "time_real": 2.0,
+      "user_seconds": 6.54,
+      "system_seconds": 0.79,
+      "peak_rss_bytes": 102105088,
+      "outputs_checked": [
+        {
+          "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+          "records": 960000
+        },
+        {
+          "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+          "records": 960000
+        }
+      ]
+    },
+    {
+      "workflow": "paired-gzip",
+      "iteration": 5,
+      "warmup": false,
+      "implementation": "native",
+      "argv": [
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/native",
+        "--threads",
+        "4",
+        "run",
+        "-Q",
+        "-L",
+        "--cut-front",
+        "--cut-right",
+        "-i",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq",
+        "-I",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r2.fastq",
+        "-o",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-5-native/r1.fastq.gz",
+        "-O",
+        "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/paired-gzip-5-native/r2.fastq.gz",
+        "--gzip-level",
+        "4"
+      ],
+      "wall_seconds": 2.3972685830667615,
+      "time_real": 2.39,
+      "user_seconds": 3.63,
+      "system_seconds": 0.32,
+      "peak_rss_bytes": 32014336,
+      "outputs_checked": [
+        {
+          "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+          "records": 960000
+        },
+        {
+          "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+          "records": 960000
+        }
+      ]
+    }
+  ],
+  "outputs": {
+    "single-stdout-0-native": [
+      {
+        "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+        "records": 960000
+      }
+    ],
+    "single-stdout-0-source": [
+      {
+        "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+        "records": 960000
+      }
+    ],
+    "paired-gzip-0-native": [
+      {
+        "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+        "records": 960000
+      },
+      {
+        "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+        "records": 960000
+      }
+    ],
+    "paired-gzip-0-source": [
+      {
+        "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+        "records": 960000
+      },
+      {
+        "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+        "records": 960000
+      }
+    ],
+    "paired-gzip-1-source": [
+      {
+        "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+        "records": 960000
+      },
+      {
+        "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+        "records": 960000
+      }
+    ],
+    "paired-gzip-1-native": [
+      {
+        "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+        "records": 960000
+      },
+      {
+        "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+        "records": 960000
+      }
+    ],
+    "paired-gzip-2-native": [
+      {
+        "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+        "records": 960000
+      },
+      {
+        "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+        "records": 960000
+      }
+    ],
+    "paired-gzip-2-source": [
+      {
+        "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+        "records": 960000
+      },
+      {
+        "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+        "records": 960000
+      }
+    ],
+    "paired-gzip-3-source": [
+      {
+        "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+        "records": 960000
+      },
+      {
+        "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+        "records": 960000
+      }
+    ],
+    "paired-gzip-3-native": [
+      {
+        "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+        "records": 960000
+      },
+      {
+        "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+        "records": 960000
+      }
+    ],
+    "paired-gzip-4-native": [
+      {
+        "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+        "records": 960000
+      },
+      {
+        "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+        "records": 960000
+      }
+    ],
+    "paired-gzip-4-source": [
+      {
+        "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+        "records": 960000
+      },
+      {
+        "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+        "records": 960000
+      }
+    ],
+    "paired-gzip-5-source": [
+      {
+        "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+        "records": 960000
+      },
+      {
+        "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+        "records": 960000
+      }
+    ],
+    "paired-gzip-5-native": [
+      {
+        "sha256": "8e2c298936ac9ebb8accb6bed299746189c3ca85c681d781d7644dd0ff51a0b9",
+        "records": 960000
+      },
+      {
+        "sha256": "4c6cdc38e2348463955fb86d10a69d18b549d7b904071579d64936fb12f2ea4b",
+        "records": 960000
+      }
+    ]
+  },
+  "files": {
+    "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/native": {
+      "bytes": 1865744,
+      "sha256": "40f0b95859bc12d41e598531b76c1f26028fb0273a23e1df441dbb5ac90906a4"
+    },
+    "/Volumes/KIOXIA/Developments/tmp/fastq-quality-source-20261103.98ZifXEs/fastp-23d6211d4f05d61f561899f1b7702435a4b5d408/fastp": {
+      "bytes": 956776,
+      "sha256": "7fb979ed4d571be495a0f5cc210122cc98a4e8f1bb1224d2aa5120947f34401d"
+    },
+    "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r1.fastq": {
+      "bytes": 317888890,
+      "sha256": "fdd4bc499e07727fbb52a672c72e2f1be3f1577afb353e8b41eea8785544ae72"
+    },
+    "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/r2.fastq": {
+      "bytes": 317888890,
+      "sha256": "7c8186a326144bd8c022ab09c5e27172a1ed6b8997fab841ba76cfbce949785e"
+    },
+    "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/generate.rs": {
+      "bytes": 1314,
+      "sha256": "132709da760839fdb0f380a7acd0162b1f3aa772317e47c54fd1119fa26dd2e0"
+    },
+    "/Volumes/KIOXIA/Developments/tmp/fastq-quality-perf-20261103.q8zY938x/measure.py": {
+      "bytes": 4851,
+      "sha256": "80a510898347fa66693560dedc4ca77b5aa9a797f03f0035040ec28c5107f91f"
+    }
+  }
+}

@@ -1,5 +1,7 @@
 use std::num::NonZeroUsize;
 
+use super::filter::PhredEncoding;
+use super::quality::QualityCut;
 use rsomics_common::{Result, RsomicsError};
 use rsomics_seqio::OwnedRecord;
 
@@ -36,6 +38,8 @@ impl Default for PolyTailConfig {
 /// Complete trimming policy for both mates.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct TrimConfig {
+    /// Rolling quality cuts before poly-tail trimming.
+    pub quality: QualityCut,
     /// Fixed trimming for R1 or single-end reads.
     pub fixed_r1: FixedTrim,
     /// Fixed trimming for R2.
@@ -48,6 +52,7 @@ pub struct TrimConfig {
 
 impl TrimConfig {
     pub(crate) fn validate(&self) -> Result<()> {
+        self.quality.validate()?;
         validate_poly_tails(self.poly_g, self.poly_x)
     }
 }
@@ -55,6 +60,8 @@ impl TrimConfig {
 /// Per-record trimming counters.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct RecordTrimMetrics {
+    /// Bases removed by quality-window trimming.
+    pub quality_bases: u64,
     /// Bases removed by fixed trimming.
     pub fixed_bases: u64,
     /// Bases removed by poly-G trimming.
@@ -107,6 +114,59 @@ pub(crate) fn trim_seqio_record(
         apply_poly_x(record, config, &mut metrics);
     }
     metrics
+}
+
+pub(crate) struct TrimResult {
+    pub metrics: RecordTrimMetrics,
+    pub discarded: bool,
+}
+
+pub(crate) fn trim_config_record(
+    record: &mut OwnedRecord,
+    fixed: FixedTrim,
+    config: &TrimConfig,
+    phred: PhredEncoding,
+) -> Result<TrimResult> {
+    if !config.quality.enabled() {
+        return Ok(TrimResult {
+            metrics: trim_seqio_record(record, fixed, config.poly_g, config.poly_x),
+            discarded: false,
+        });
+    }
+    let quality = record
+        .qual
+        .as_deref()
+        .expect("validated FASTQ records carry quality");
+    if phred == PhredEncoding::Phred64 && quality.iter().any(|q| *q < phred.offset()) {
+        return Err(RsomicsError::InvalidInput(
+            "quality byte is below the explicit Phred+64 offset".into(),
+        ));
+    }
+    let original = record.seq.len();
+    let fixed_remaining = original
+        .saturating_sub(fixed.front)
+        .saturating_sub(fixed.tail);
+    let selected = config.quality.range(&record.seq, quality, fixed, phred);
+    let discarded = selected.is_none();
+    let selected = selected.unwrap_or(0..0);
+    let mut metrics = RecordTrimMetrics {
+        fixed_bases: metric_count(original - fixed_remaining),
+        quality_bases: metric_count(fixed_remaining - selected.len()),
+        ..RecordTrimMetrics::default()
+    };
+    replace_range(record, selected.start, selected.end);
+    if !discarded {
+        if let Some(poly) = config.poly_g {
+            apply_poly_g(record, poly, &mut metrics);
+        }
+        if let Some(poly) = config.poly_x {
+            apply_poly_x(record, poly, &mut metrics);
+        }
+    }
+    Ok(TrimResult {
+        metrics,
+        discarded: discarded || record.seq.is_empty(),
+    })
 }
 
 fn validate_poly_tails(
