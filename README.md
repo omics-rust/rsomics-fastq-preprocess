@@ -10,6 +10,15 @@ first consumer slice exposes:
 All three commands share the same strict single-end/paired-end engine. Input
 compression is detected from content; output paths ending in `.gz` use gzip.
 
+## Installation
+
+Download the archive for your OS and CPU from
+[GitHub Releases](https://github.com/omics-rust/rsomics-fastq-preprocess/releases/tag/v0.2.0).
+Linux and macOS both have x86_64 and aarch64 builds. Verify the archive's
+SHA-256 against `SHA256SUMS`, extract it, and place `rsomics-fastq-preprocess`
+on your `PATH`. Run `rsomics-fastq-preprocess --version` to confirm 0.2.0.
+The crates.io release is still 0.1.1 and does not include the quality windows.
+
 ## Usage
 
 ```text
@@ -88,8 +97,8 @@ the individually passing prefix inside its first failing window. Source-specific
 end-window boundaries are retained: each executed cut rejects remaining lengths
 no greater than its window. An empty read after this workflow
 is discarded even with ordinary quality/length filters disabled. Poly removal
-is not charged to quality-trimmed bases. Explicit Phred+64 input uses the same
-score thresholds and is emitted through the existing Phred+33 normalization.
+is not charged to quality-trimmed bases. Explicit Phred+64 input is validated
+before trimming, uses the same score thresholds, and is emitted as Phred+33.
 
 ```bash
 rsomics-fastq-preprocess --threads 4 run \
@@ -97,11 +106,10 @@ rsomics-fastq-preprocess --threads 4 run \
   --cut-front --cut-right --cut-window-size 4 --cut-mean-quality 20
 ```
 
-The 0.2 source candidate adds these settings to `TrimConfig`; existing standalone
+Version 0.2 adds these settings to `TrimConfig`; the existing standalone
 `trim_record` retains its fixed/poly-only contract. Quality-window measurements
 and the slower paired-gzip wall result are retained in
-[the benchmark record](benchmarks/2026-11-03-quality-windows.md). Candidate
-source does not imply that 0.2 binaries or a registry version have been published.
+[the benchmark record](benchmarks/2026-11-03-quality-windows.md).
 
 Adapter auto-detection, static adapter matching, and paired-overlap trimming
 are intentionally excluded. The historical rsomics implementations did not
