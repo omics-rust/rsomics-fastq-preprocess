@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 env:
-  DELIVERY_HELPER_REVISION: f580be8705678234fd4b1abdcf9e56860f43b33f
+  DELIVERY_HELPER_REVISION: 1c5c7b08002be0c0042f50a295d888cc3e281650
   CARGO_BUILD_JOBS: "2"
   PYTHONDONTWRITEBYTECODE: "1"
 
@@ -184,7 +184,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rsomics-fastq-preprocess-delivery-${{ matrix.target }}-${{ github.sha }}
+          name: rsomics-fastq-preprocess-delivery-${{ matrix.target }}-${{ github.sha }}-a${{ github.run_attempt }}
           path: |
             ${{ runner.temp }}/delivery/*.crate
             ${{ runner.temp }}/delivery/*.tar.gz
@@ -195,5 +195,51 @@ jobs:
             ${{ runner.temp }}/delivery/package.std*
             ${{ runner.temp }}/delivery/install.std*
             ${{ runner.temp }}/delivery/release-tests.log
+          if-no-files-found: error
+          retention-days: 90
+
+  audit-originals:
+    name: Verify original delivery artifacts
+    needs: native
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@v6
+        with:
+          repository: omics-rust/rsomics-world
+          ref: ${{ env.DELIVERY_HELPER_REVISION }}
+          path: target/ci/control-plane
+          sparse-checkout: |
+            scripts/native_delivery.py
+            scripts/audit_native_delivery.py
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: dtolnay/rust-toolchain@1.91.0
+      - name: Recheck uploaded ZIPs against the exact source and native install receipts
+        env:
+          ARTIFACT_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          errors="$RUNNER_TEMP/native-audit.stderr"
+          if ! python3 -B target/ci/control-plane/scripts/audit_native_delivery.py \
+            --repo "$GITHUB_WORKSPACE" --out "$RUNNER_TEMP/native-audit" 2> "$errors" | tee -a "$GITHUB_STEP_SUMMARY"; then
+            python3 -B -c 'import os,sys; from pathlib import Path; text=Path(sys.argv[1]).read_text(errors="replace"); text=text.replace(os.environ["ARTIFACT_TOKEN"], "[masked]")[-4000:]; print("::error title=Original delivery audit failed::" + text.replace("%","%25").replace("\r","%0D").replace("\n","%0A"))' "$errors"
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rsomics-fastq-preprocess-native-audit-${{ github.sha }}-a${{ github.run_attempt }}
+          path: ${{ runner.temp }}/native-audit/AUDITED.json
           if-no-files-found: error
           retention-days: 90
