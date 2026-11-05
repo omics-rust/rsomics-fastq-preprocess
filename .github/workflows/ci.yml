@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 env:
-  DELIVERY_HELPER_REVISION: 1c5c7b08002be0c0042f50a295d888cc3e281650
+  DELIVERY_HELPER_REVISION: 46f68f15c2d0e83a71979cc5f51d105d3ddb6c01
   CARGO_BUILD_JOBS: "2"
   PYTHONDONTWRITEBYTECODE: "1"
 
@@ -220,6 +220,7 @@ jobs:
           sparse-checkout: |
             scripts/native_delivery.py
             scripts/audit_native_delivery.py
+            scripts/stage_native_release.py
           sparse-checkout-cone-mode: false
           persist-credentials: false
       - uses: actions/setup-python@v6
@@ -241,5 +242,20 @@ jobs:
         with:
           name: rsomics-fastq-preprocess-native-audit-${{ github.sha }}-a${{ github.run_attempt }}
           path: ${{ runner.temp }}/native-audit/AUDITED.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Stage verified release files
+        run: |
+          set -euo pipefail
+          test "$(git -C target/ci/control-plane rev-parse HEAD)" = "$DELIVERY_HELPER_REVISION"
+          staged="$RUNNER_TEMP/release-stage"
+          receipt=$(python3 -B target/ci/control-plane/scripts/stage_native_release.py \
+            --audit "$RUNNER_TEMP/native-audit" --out "$staged")
+          (cd "$staged" && sha256sum --check --strict SHA256SUMS)
+          printf 'Staged release receipt SHA-256: `%s`\n' "$receipt" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rsomics-fastq-preprocess-release-stage-${{ github.sha }}-a${{ github.run_attempt }}
+          path: ${{ runner.temp }}/release-stage/
           if-no-files-found: error
           retention-days: 90
