@@ -503,6 +503,65 @@ fn phred64_output_is_normalized_to_phred33() {
 }
 
 #[test]
+fn single_end_rejects_trimmed_invalid_phred64() {
+    let directory = tempfile::tempdir().unwrap();
+    let input = directory.path().join("invalid.fastq");
+    let output_path = directory.path().join("trimmed.fastq");
+    std::fs::write(&input, b"@read\nACGT\n+\n!III\n").unwrap();
+    let output = run(&[
+        "--threads",
+        "1",
+        "trim",
+        "--phred-offset",
+        "64",
+        "--trim-front1",
+        "1",
+        "-i",
+        input.to_str().unwrap(),
+        "-o",
+        output_path.to_str().unwrap(),
+    ]);
+    assert!(!output.status.success(), "accepted trimmed invalid quality");
+    assert!(!output_path.exists());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("explicit Phred+64 offset"));
+}
+
+#[test]
+fn paired_end_rejects_trimmed_invalid_phred64() {
+    let directory = tempfile::tempdir().unwrap();
+    let first = directory.path().join("r1.fastq");
+    let second = directory.path().join("r2.fastq");
+    let output_r1 = directory.path().join("trimmed.r1.fastq");
+    let output_r2 = directory.path().join("trimmed.r2.fastq");
+    std::fs::write(&first, b"@pair/1\nACGT\n+\nhhhh\n").unwrap();
+    std::fs::write(&second, b"@pair/2\nACGTGGGGGGGGGGGG\n+\nhhhhhhhhhhhhhhh!\n").unwrap();
+    let output = run(&[
+        "--threads",
+        "4",
+        "run",
+        "--phred-offset",
+        "64",
+        "-Q",
+        "-L",
+        "--trim-poly-g",
+        "-i",
+        first.to_str().unwrap(),
+        "-I",
+        second.to_str().unwrap(),
+        "-o",
+        output_r1.to_str().unwrap(),
+        "-O",
+        output_r2.to_str().unwrap(),
+    ]);
+    assert!(
+        !output.status.success(),
+        "accepted trimmed invalid mate quality"
+    );
+    assert!(!output_r1.exists() && !output_r2.exists());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("explicit Phred+64 offset"));
+}
+
+#[test]
 fn paired_input_aliases_are_rejected_before_output_creation() {
     for alias in ["exact", "normalized", "hardlink", "symlink"] {
         let directory = tempfile::tempdir().unwrap();

@@ -126,22 +126,17 @@ pub(crate) fn trim_config_record(
     fixed: FixedTrim,
     config: &TrimConfig,
     phred: PhredEncoding,
-) -> Result<TrimResult> {
+) -> TrimResult {
     if !config.quality.enabled() {
-        return Ok(TrimResult {
+        return TrimResult {
             metrics: trim_seqio_record(record, fixed, config.poly_g, config.poly_x),
             discarded: false,
-        });
+        };
     }
     let quality = record
         .qual
         .as_deref()
         .expect("validated FASTQ records carry quality");
-    if phred == PhredEncoding::Phred64 && quality.iter().any(|q| *q < phred.offset()) {
-        return Err(RsomicsError::InvalidInput(
-            "quality byte is below the explicit Phred+64 offset".into(),
-        ));
-    }
     let original = record.seq.len();
     let fixed_remaining = original
         .saturating_sub(fixed.front)
@@ -163,10 +158,10 @@ pub(crate) fn trim_config_record(
             apply_poly_x(record, poly, &mut metrics);
         }
     }
-    Ok(TrimResult {
+    TrimResult {
         metrics,
         discarded: discarded || record.seq.is_empty(),
-    })
+    }
 }
 
 fn validate_poly_tails(

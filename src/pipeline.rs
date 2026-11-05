@@ -7,8 +7,8 @@ use serde::Serialize;
 
 use crate::input::{RecordSource, ensure_fastq, next_owned, same_mate_id};
 use crate::output::{OutputSink, TransactionOutput, finish_pair, validate_output_path};
-use crate::transform::filter::{FilterConfig, FilterOutcome};
-use crate::transform::trim::{RecordTrimMetrics, TrimConfig, trim_config_record};
+use crate::transform::filter::{FilterConfig, FilterOutcome, PhredEncoding};
+use crate::transform::trim::{FixedTrim, RecordTrimMetrics, TrimConfig, trim_config_record};
 
 const CHUNK_RECORDS: usize = 4_096;
 
@@ -498,21 +498,12 @@ fn process_single(mut record: OwnedRecord, config: &PipelineConfig) -> Result<Pr
     delta.reads_in = 1;
     delta.bases_in = input_bases;
 
-    let mut trim_discarded = false;
-    if let Some(trim) = config.trim.as_ref() {
-        let phred = config
-            .filter
-            .map_or(crate::PhredEncoding::Phred33, |f| f.phred);
-        let trimmed = trim_config_record(&mut record, trim.fixed_r1, trim, phred)?;
-        trim_discarded = trimmed.discarded;
-        add_trim_record(&mut delta.trimming, trimmed.metrics);
-    }
-
-    let outcome = if trim_discarded {
-        FilterOutcome::TooShort
-    } else {
-        check_record(&record, config.filter)?
-    };
+    let outcome = trim_and_filter(
+        &mut record,
+        config.trim.as_ref().map(|trim| (trim, trim.fixed_r1)),
+        config.filter,
+        &mut delta.trimming,
+    )?;
     if outcome == FilterOutcome::Pass {
         normalize_output_quality(&mut record, config.filter);
         delta.reads_out = 1;
@@ -546,28 +537,18 @@ fn process_pair(
         .checked_add(metric_count(right.seq.len()))
         .expect("two live record buffers fit in the supported address space");
 
-    let mut discarded = (false, false);
-    if let Some(trim) = config.trim.as_ref() {
-        let phred = config
-            .filter
-            .map_or(crate::PhredEncoding::Phred33, |f| f.phred);
-        let left_metrics = trim_config_record(&mut left, trim.fixed_r1, trim, phred)?;
-        let right_metrics = trim_config_record(&mut right, trim.fixed_r2, trim, phred)?;
-        discarded = (left_metrics.discarded, right_metrics.discarded);
-        add_trim_record(&mut delta.trimming, left_metrics.metrics);
-        add_trim_record(&mut delta.trimming, right_metrics.metrics);
-    }
-
-    let left_outcome = if discarded.0 {
-        FilterOutcome::TooShort
-    } else {
-        check_record(&left, config.filter)?
-    };
-    let right_outcome = if discarded.1 {
-        FilterOutcome::TooShort
-    } else {
-        check_record(&right, config.filter)?
-    };
+    let left_outcome = trim_and_filter(
+        &mut left,
+        config.trim.as_ref().map(|trim| (trim, trim.fixed_r1)),
+        config.filter,
+        &mut delta.trimming,
+    )?;
+    let right_outcome = trim_and_filter(
+        &mut right,
+        config.trim.as_ref().map(|trim| (trim, trim.fixed_r2)),
+        config.filter,
+        &mut delta.trimming,
+    )?;
     if left_outcome == FilterOutcome::Pass && right_outcome == FilterOutcome::Pass {
         normalize_output_quality(&mut left, config.filter);
         normalize_output_quality(&mut right, config.filter);
@@ -590,8 +571,35 @@ fn process_pair(
     }
 }
 
+fn trim_and_filter(
+    record: &mut OwnedRecord,
+    trim: Option<(&TrimConfig, FixedTrim)>,
+    filter: Option<FilterConfig>,
+    metrics: &mut TrimMetrics,
+) -> Result<FilterOutcome> {
+    let phred = filter.map_or(PhredEncoding::Phred33, |filter| filter.phred);
+    if phred == PhredEncoding::Phred64 {
+        phred.validate_quality_offset(
+            record.qual.as_deref().expect("FASTQ records carry quality"),
+        )?;
+    }
+    if let Some((trim, fixed)) = trim {
+        let trimmed = trim_config_record(record, fixed, trim, phred);
+        add_trim_record(metrics, trimmed.metrics);
+        if trimmed.discarded {
+            return Ok(FilterOutcome::TooShort);
+        }
+    }
+    Ok(filter.map_or(FilterOutcome::Pass, |filter| {
+        filter.check_validated_record(
+            &record.seq,
+            record.qual.as_deref().expect("FASTQ records carry quality"),
+        )
+    }))
+}
+
 fn normalize_output_quality(record: &mut OwnedRecord, filter: Option<FilterConfig>) {
-    if filter.is_some_and(|config| config.phred == crate::PhredEncoding::Phred64) {
+    if filter.is_some_and(|config| config.phred == PhredEncoding::Phred64) {
         for quality in record
             .qual
             .as_mut()
@@ -602,19 +610,6 @@ fn normalize_output_quality(record: &mut OwnedRecord, filter: Option<FilterConfi
                 .expect("Phred+64 validation precedes output normalization");
         }
     }
-}
-
-fn check_record(record: &OwnedRecord, filter: Option<FilterConfig>) -> Result<FilterOutcome> {
-    let Some(filter) = filter else {
-        return Ok(FilterOutcome::Pass);
-    };
-    filter.check_seqio_record(
-        &record.seq,
-        record
-            .qual
-            .as_deref()
-            .expect("validated FASTQ records always carry quality"),
-    )
 }
 
 fn blank_delta(config: &PipelineConfig, mode: Mode) -> PreprocessReport {

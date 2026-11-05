@@ -18,6 +18,16 @@ impl PhredEncoding {
             Self::Phred64 => 64,
         }
     }
+
+    pub(crate) fn validate_quality_offset(self, qual: &[u8]) -> Result<()> {
+        let offset = self.offset();
+        if let Some(invalid) = qual.iter().copied().find(|quality| *quality < offset) {
+            return Err(RsomicsError::InvalidInput(format!(
+                "quality byte {invalid} is below the explicit Phred+{offset} offset"
+            )));
+        }
+        Ok(())
+    }
 }
 
 /// Ordered filter outcome matching fastp's first-failure attribution.
@@ -100,21 +110,8 @@ impl FilterConfig {
                 "FASTQ quality byte {invalid} exceeds printable ASCII 126"
             )));
         }
-        if let Some(outcome) = self.empty_read_outcome(seq) {
-            return Ok(outcome);
-        }
-        self.validate_quality_offset(qual)?;
-        self.check_after_offset_validation(seq, qual)
-    }
-
-    pub(crate) fn check_seqio_record(self, seq: &[u8], qual: &[u8]) -> Result<FilterOutcome> {
-        if let Some(outcome) = self.empty_read_outcome(seq) {
-            return Ok(outcome);
-        }
-        if self.phred == PhredEncoding::Phred64 {
-            self.validate_quality_offset(qual)?;
-        }
-        self.check_after_offset_validation(seq, qual)
+        self.phred.validate_quality_offset(qual)?;
+        Ok(self.check_validated_record(seq, qual))
     }
 
     pub(crate) fn validate(self) -> Result<()> {
@@ -144,25 +141,14 @@ impl FilterConfig {
         Ok(())
     }
 
-    fn empty_read_outcome(self, seq: &[u8]) -> Option<FilterOutcome> {
-        (seq.is_empty()
+    pub(crate) fn check_validated_record(self, seq: &[u8], qual: &[u8]) -> FilterOutcome {
+        if seq.is_empty()
             && (self.quality_enabled
                 || (self.length_enabled && self.length_required > 0)
-                || self.complexity_threshold.is_some()))
-        .then_some(FilterOutcome::TooShort)
-    }
-
-    fn validate_quality_offset(self, qual: &[u8]) -> Result<()> {
-        let offset = self.phred.offset();
-        if let Some(invalid) = qual.iter().copied().find(|quality| *quality < offset) {
-            return Err(RsomicsError::InvalidInput(format!(
-                "quality byte {invalid} is below the explicit Phred+{offset} offset"
-            )));
+                || self.complexity_threshold.is_some())
+        {
+            return FilterOutcome::TooShort;
         }
-        Ok(())
-    }
-
-    fn check_after_offset_validation(self, seq: &[u8], qual: &[u8]) -> Result<FilterOutcome> {
         let offset = self.phred.offset();
 
         if self.quality_enabled {
@@ -182,34 +168,34 @@ impl FilterConfig {
             if metric_count(low_quality) * 100
                 > u64::from(self.unqualified_percent_limit) * metric_count(seq.len())
             {
-                return Ok(FilterOutcome::LowQuality);
+                return FilterOutcome::LowQuality;
             }
             if self.average_quality > 0
                 && total_quality / metric_count(seq.len()) < u64::from(self.average_quality)
             {
-                return Ok(FilterOutcome::LowAverageQuality);
+                return FilterOutcome::LowAverageQuality;
             }
             if n_count > self.n_base_limit {
-                return Ok(FilterOutcome::TooManyN);
+                return FilterOutcome::TooManyN;
             }
         }
 
         if self.length_enabled {
             if seq.len() < self.length_required {
-                return Ok(FilterOutcome::TooShort);
+                return FilterOutcome::TooShort;
             }
             if self.length_limit > 0 && seq.len() > self.length_limit {
-                return Ok(FilterOutcome::TooLong);
+                return FilterOutcome::TooLong;
             }
         }
 
         if let Some(threshold) = self.complexity_threshold
             && !passes_complexity(seq, threshold)
         {
-            return Ok(FilterOutcome::LowComplexity);
+            return FilterOutcome::LowComplexity;
         }
 
-        Ok(FilterOutcome::Pass)
+        FilterOutcome::Pass
     }
 }
 

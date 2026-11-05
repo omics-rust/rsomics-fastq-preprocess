@@ -122,9 +122,9 @@ lowercase `n` does not. Percentage boundaries use strict `>` for rejection.
 Complexity is
 `adjacent_changes / (length - 1)` and rejects length-zero and length-one reads
 when enabled. Phred encoding is explicit (`--phred-offset 33` or `64`);
-quality bytes below the selected offset are errors. Phred+64 input is always
-serialized as Phred+33 by subtracting 31 from every emitted quality byte,
-matching `fastp -6`.
+quality bytes below the selected offset are errors even at trimmed positions.
+Phred+64 input is serialized as Phred+33 by subtracting 31 from every emitted
+quality byte, matching `fastp -6`.
 
 For paired input, both mates are evaluated independently, but the pair is
 emitted only when both pass. JSON failure counters count individual mates,
