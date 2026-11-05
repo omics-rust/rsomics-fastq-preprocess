@@ -47,7 +47,7 @@ pub fn build_pool(threads: &ThreadArgs) -> Result<ThreadPool> {
 enum Command {
     /// Trim and filter in one FASTQ traversal.
     Run(RunArgs),
-    /// Apply fixed and poly-tail trimming.
+    /// Apply fixed, quality-window, and poly-tail trimming.
     Trim(TrimArgs),
     /// Apply whole-read quality, N, length, and optional complexity filters.
     Filter(FilterOnlyArgs),

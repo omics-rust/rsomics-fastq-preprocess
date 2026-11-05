@@ -78,11 +78,11 @@ zero.
 post-trim length gate.
 
 Quality-window cutting is opt-in through `--cut-front`, `--cut-tail`, or
-`--cut-right` on `run` and `trim`. The shared `--cut-window-size` defaults to4
-and `--cut-mean-quality` to20; per-mode window and mean overrides inherit these
-values when omitted. Window sizes are1..1000 and mean thresholds1..30.
+`--cut-right` on `run` and `trim`. The shared `--cut-window-size` defaults to 4
+and `--cut-mean-quality` to 20; per-mode window and mean overrides inherit these
+values when omitted. Window sizes are 1..1000 and mean thresholds 1..30.
 
-These are fastp1.3.6 semantics, not Trimmomatic sliding windows. Front cutting
+These are fastp 1.3.6 semantics, not Trimmomatic sliding windows. Front cutting
 runs first; right cutting takes precedence over tail cutting. Right mode keeps
 the individually passing prefix inside its first failing window. Source-specific
 end-window boundaries are retained: each executed cut rejects remaining lengths
@@ -97,11 +97,11 @@ rsomics-fastq-preprocess --threads 4 run \
   --cut-front --cut-right --cut-window-size 4 --cut-mean-quality 20
 ```
 
-The0.2 source candidate adds these settings to `TrimConfig`; existing standalone
+The 0.2 source candidate adds these settings to `TrimConfig`; existing standalone
 `trim_record` retains its fixed/poly-only contract. Quality-window measurements
 and the slower paired-gzip wall result are retained in
 [the benchmark record](benchmarks/2026-11-03-quality-windows.md). Candidate
-source does not imply that0.2 binaries or a registry version have been published.
+source does not imply that 0.2 binaries or a registry version have been published.
 
 Adapter auto-detection, static adapter matching, and paired-overlap trimming
 are intentionally excluded. The historical rsomics implementations did not
@@ -142,6 +142,8 @@ byte-for-byte differential for:
 - low-complexity filtering including zero- and one-base reads;
 - fixed, poly-G, and poly-X trimming, including allowed internal and trailing
   poly-G mismatches;
+- front/tail/right quality-window combinations, fixed/poly ordering, and
+  retained single-end/paired-end reads at one and four workers;
 - Phred+64 boundary conversion, uppercase-only N filtering, maximum length,
   PE fixed-trim inheritance/explicit zero, and mixed PE failures.
 
@@ -178,7 +180,7 @@ than substitutes for this representative external measurement.
 ## Current exclusions
 
 - adapter sequence/auto-detection and PE overlap;
-- sliding-window/leading/trailing quality trimming;
+- Trimmomatic-style sliding-window and leading/trailing quality semantics;
 - automatic sequencing-instrument detection;
 - interleaved PE stdin/stdout;
 - UMI, correction, merge, deduplication, and BBDuk-style filtering;

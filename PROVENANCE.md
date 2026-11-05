@@ -7,7 +7,7 @@
 | strict chunk engine | `rsomics-fastp` 0.2.0 registry archive | SHA-256 `f47ccbf47c416889772494777592347c93f0ef72af9114f4879b7f69f5bb4ab2` | architecture seed only; replace parser, writer, filter precedence, PE verdict, and reporting |
 | fixed/poly trim | `rsomics-fastq-trim` | `30b07d34d02864518efc02f1e7a5f881769fcd3f` | refactor pure transforms; re-establish fastp behavior |
 | whole-read filter | `rsomics-fastq-filter` | `bdc2824778ed1b8fc185b173d841f63d8b9e6759` | retain boundary fixtures; correct precedence and transactional I/O |
-| quality trimming | `rsomics-fastq-quality` | `711e32cac0f45072d038171f42d6d4a831112cff` | evidence only; excluded until Trimmomatic versus fastp semantics have separate oracles |
+| quality trimming | `rsomics-fastq-quality` | `711e32cac0f45072d038171f42d6d4a831112cff` | evidence only; replace mixed semantics with pinned fastp window behavior |
 | complexity | `rsomics-fastq-complexity` | `22948ed73a0f1b1b26cba7494b25c79fb8067811` | refactor adjacent-change metric; correct length-zero/one behavior |
 | parallel gzip output | `rsomics-fqgz` | implementation introduced at `0ebfe46`; retained source head `c5e7de1` | refactor then merge as a private product module; retain strict seqio serialization and transactional output |
 | old combined CLI/report | `rsomics-fastp` | `2d1d68d25d10c087aae4548b922b9b1b4e9b80ad` | fixtures and option inventory only |
@@ -40,9 +40,10 @@ foundation would create an unused or semantically incorrect dependency.
 - Live command shapes are encoded in `tests/fastp_compat.rs`.
 - Frozen byte-exact outputs are under `tests/golden/`.
 
-Verified operations are limited to explicit fixed/poly-G/poly-X trimming and
-quality/N/length/complexity filtering. No compatibility claim is inherited
-from an old README.
+Verified operations are limited to explicit fixed/quality-window/poly-G/poly-X
+trimming and quality/N/length/complexity filtering. The quality-window candidate
+has local live-oracle evidence; exact-head four-native qualification and release
+remain separate gates. No compatibility claim is inherited from an old README.
 
 ## Corrected inherited behavior
 
